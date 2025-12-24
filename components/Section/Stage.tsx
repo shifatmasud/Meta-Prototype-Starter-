@@ -102,7 +102,7 @@ const BlueprintOverlay: React.FC<{ anatomy: ElementAnatomy }> = ({ anatomy }) =>
     
     const LINE_OFFSET = 24;
     const colorDim = theme.Color.Warning.Content['1']; // Orange for physical dimensions
-    const colorLayout = theme.Color.Signal.Surface['1']; // Purple for layout/anatomy
+    const colorLayout = theme.Color.Signal.Content['1']; // Purple for layout/anatomy
 
     // Canvas bounds - slightly larger than component
     const CANVAS_PAD = 100;
