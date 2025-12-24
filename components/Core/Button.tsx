@@ -83,6 +83,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
           background: customFill || theme.Color.Accent.Surface[1],
           color: customColor || theme.Color.Accent.Content[1],
           border: 'none',
+          boxShadow: theme.effects['Effect.Shadow.Drop.2'],
         };
       case 'secondary':
         return {
@@ -136,7 +137,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     overflow: 'hidden',
     fontWeight: 600,
     fontFamily: theme.Type.Readable.Label.M.fontFamily,
-    transition: `transform ${theme.time['Time.1x']} ease`,
+    transition: `transform ${theme.time['Time.1x']} ease, box-shadow ${theme.time['Time.1x']} ease`,
     ...variantStyles,
     ...sizeStyles,
   };

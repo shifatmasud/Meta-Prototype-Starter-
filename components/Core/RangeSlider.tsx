@@ -2,8 +2,8 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useRef, useEffect } from 'react';
-import { MotionValue } from 'framer-motion';
+import React, { useRef, useEffect, useState } from 'react';
+import { MotionValue, animate } from 'framer-motion';
 import { useTheme } from '../../Theme.tsx';
 
 interface RangeSliderProps {
@@ -14,65 +14,64 @@ interface RangeSliderProps {
   max?: number;
 }
 
-/**
- * 🏎️ MotionValue-Driven Range Slider for Real-time Feedback
- * This component is now driven by a `motionValue` prop from its parent.
- *
- * How it works:
- * 1. On user interaction, it calls `.set()` on the shared `motionValue`. This provides
- *    instant feedback to any other component listening to the same `motionValue`.
- * 2. An effect listens to changes and updates this component's own input DOM elements,
- *    preventing internal re-renders.
- * 3. When the user finishes the interaction (`onMouseUp`, `onBlur`), it calls the
- *    `onCommit` prop to save the final value to the main application state.
- */
 const RangeSlider: React.FC<RangeSliderProps> = ({ label, motionValue, onCommit, min = 0, max = 100 }) => {
   const { theme } = useTheme();
-  
-  const rangeInputRef = useRef<HTMLInputElement>(null);
-  const numberInputRef = useRef<HTMLInputElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [internalValue, setInternalValue] = useState(motionValue.get());
+  const [isDragging, setIsDragging] = useState(false);
 
+  // Sync internal state with external motion value updates (e.g. undo/redo)
   useEffect(() => {
-    // This effect subscribes to the motion value and manually updates the DOM
-    // of the input elements. This makes the slider's own display update
-    // without needing to re-render the component itself.
-    const unsubscribe = motionValue.onChange(latest => {
-      const stringValue = String(Math.round(latest));
-      if (rangeInputRef.current && rangeInputRef.current.value !== stringValue) {
-        rangeInputRef.current.value = stringValue;
-      }
-      if (numberInputRef.current && numberInputRef.current.value !== stringValue) {
-        numberInputRef.current.value = stringValue;
+    const unsubscribe = motionValue.onChange((v) => {
+      if (!isDragging) {
+        setInternalValue(v);
       }
     });
     return unsubscribe;
-  }, [motionValue]);
-  
-  const handleCommit = () => {
-    onCommit(Math.round(motionValue.get()));
-  };
-  
-  const handleLiveChange = (newValue: number) => {
-    const clampedValue = Math.max(min, Math.min(max, newValue));
-    motionValue.set(clampedValue);
+  }, [motionValue, isDragging]);
+
+  const updateValueFromPointer = (clientX: number) => {
+    if (!trackRef.current) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    const percent = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
+    const newValue = Math.round(min + percent * (max - min));
+    
+    setInternalValue(newValue);
+    motionValue.set(newValue); // Real-time update
   };
 
-  const handleNumberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleCommit();
-      (e.target as HTMLInputElement).blur();
+  const handlePointerDown = (e: React.PointerEvent) => {
+    setIsDragging(true);
+    trackRef.current?.setPointerCapture(e.pointerId);
+    updateValueFromPointer(e.clientX);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (isDragging) {
+      updateValueFromPointer(e.clientX);
     }
   };
 
-  const baseInputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: theme.spacing['Space.S'],
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (isDragging) {
+      setIsDragging(false);
+      trackRef.current?.releasePointerCapture(e.pointerId);
+      onCommit(internalValue); // Commit only on release
+    }
+  };
+
+  const percentage = ((internalValue - min) / (max - min)) * 100;
+
+  const numberInputStyle: React.CSSProperties = {
+    width: '60px',
+    padding: theme.spacing['Space.XS'],
     borderRadius: theme.radius['Radius.S'],
     border: `1px solid ${theme.Color.Base.Surface[3]}`,
     backgroundColor: theme.Color.Base.Surface[2],
     color: theme.Color.Base.Content[1],
     fontFamily: theme.Type.Readable.Body.M.fontFamily,
     fontSize: '14px',
+    textAlign: 'center',
     outline: 'none',
   };
 
@@ -81,28 +80,81 @@ const RangeSlider: React.FC<RangeSliderProps> = ({ label, motionValue, onCommit,
       <label style={{ ...theme.Type.Readable.Label.S, display: 'block', marginBottom: theme.spacing['Space.S'], color: theme.Color.Base.Content[2] }}>
         {label}
       </label>
+      
       <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing['Space.S'] }}>
+        
+        {/* Custom Track */}
+        <div 
+            ref={trackRef}
+            style={{ 
+                flex: 1, 
+                height: '24px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer',
+                touchAction: 'none' // Prevent scrolling while dragging
+            }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+        >
+            <div style={{ 
+                position: 'relative', 
+                width: '100%', 
+                height: '6px', 
+                backgroundColor: theme.Color.Base.Surface[3], 
+                borderRadius: '3px',
+                overflow: 'visible' 
+            }}>
+                {/* Fill Bar */}
+                <div style={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: 0, 
+                    height: '100%', 
+                    width: `${percentage}%`, 
+                    backgroundColor: theme.Color.Accent.Surface[1], 
+                    borderRadius: '3px' 
+                }} />
+                
+                {/* Thumb */}
+                <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: `${percentage}%`,
+                    width: '18px',
+                    height: '18px',
+                    backgroundColor: theme.Color.Base.Surface[1],
+                    border: `2px solid ${theme.Color.Accent.Surface[1]}`,
+                    borderRadius: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    boxShadow: theme.effects['Effect.Shadow.Drop.1'],
+                    transition: 'transform 0.1s ease',
+                    transformOrigin: 'center'
+                }} />
+            </div>
+        </div>
+
+        {/* Number Input */}
         <input
-          ref={rangeInputRef}
-          type="range"
-          min={min}
-          max={max}
-          defaultValue={motionValue.get()}
-          onChange={(e) => handleLiveChange(parseInt(e.target.value, 10))}
-          onMouseUp={handleCommit}
-          onTouchEnd={handleCommit}
-          style={{ flex: 1, accentColor: theme.Color.Accent.Surface[1], cursor: 'pointer', touchAction: 'none' }}
-        />
-        <input
-          ref={numberInputRef}
           type="number"
           min={min}
           max={max}
-          defaultValue={motionValue.get()}
-          onChange={(e) => handleLiveChange(parseInt(e.target.value, 10) || 0)}
-          onBlur={handleCommit}
-          onKeyDown={handleNumberKeyDown}
-          style={{ ...baseInputStyle, width: '60px', textAlign: 'center', padding: theme.spacing['Space.XS'] }}
+          value={internalValue}
+          onChange={(e) => {
+             const v = parseInt(e.target.value, 10) || 0;
+             const clamped = Math.min(Math.max(v, min), max);
+             setInternalValue(clamped);
+             motionValue.set(clamped);
+          }}
+          onBlur={() => onCommit(internalValue)}
+          onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                  onCommit(internalValue);
+                  (e.target as HTMLInputElement).blur();
+              }
+          }}
+          style={numberInputStyle}
         />
       </div>
     </div>

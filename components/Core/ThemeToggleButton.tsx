@@ -29,17 +29,20 @@ const ThemeToggleButton = () => {
       borderRadius: theme.radius['Radius.Full'],
       backgroundColor: theme.Color.Base.Surface['2'],
       border: 'none',
-      cursor: 'pointer',
+      cursor: 'grab',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       color: theme.Color.Base.Content['2'],
       boxShadow: theme.effects['Effect.Shadow.Drop.1'],
       overflow: 'hidden', // Ensures icons don't pop out during animation
+      zIndex: 1001,
+      touchAction: 'none',
     },
     icon: {
       fontSize: '24px',
       lineHeight: 0, // Prevents layout shifts from line-height
+      pointerEvents: 'none',
     }
   };
 
@@ -50,6 +53,9 @@ const ThemeToggleButton = () => {
       aria-label={`Switch to ${themeName === 'light' ? 'dark' : 'light'} mode`}
       whileHover={{ scale: 1.1, boxShadow: theme.effects['Effect.Shadow.Drop.2'] }}
       whileTap={{ scale: 0.95 }}
+      whileDrag={{ scale: 1.1, cursor: 'grabbing', boxShadow: theme.effects['Effect.Shadow.Drop.3'] }}
+      drag
+      dragMomentum={false}
       transition={{ duration: 0.2 }}
     >
       <AnimatePresence mode="wait" initial={false}>

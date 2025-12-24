@@ -29,7 +29,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   radiusMotionValue, 
   onRadiusCommit, 
   showMeasurements, 
-  onToggleMeasurements,
+  onToggleMeasurements, 
   showTokens,
   onToggleTokens
 }) => {
@@ -93,21 +93,17 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             max={56}
           />
       </div>
-      <div style={{ display: 'flex', gap: theme.spacing['Space.M'], marginTop: theme.spacing['Space.L'] }}>
-        <div style={{ flex: 1 }}>
-          <ColorPicker
-            label="Fill Color"
-            value={btnProps.customFill || (theme.themeName === 'dark' ? '#ffffff' : '#000000')}
-            onChange={(e) => onPropChange('customFill', e.target.value)}
-          />
-        </div>
-        <div style={{ flex: 1 }}>
-          <ColorPicker
-            label="Text Color"
-            value={btnProps.customColor || (theme.themeName === 'dark' ? '#000000' : '#ffffff')}
-            onChange={(e) => onPropChange('customColor', e.target.value)}
-          />
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing['Space.M'], marginTop: theme.spacing['Space.L'], width: '100%' }}>
+        <ColorPicker
+          label="Fill Color"
+          value={btnProps.customFill || (theme.themeName === 'dark' ? '#ffffff' : '#000000')}
+          onChange={(e) => onPropChange('customFill', e.target.value)}
+        />
+        <ColorPicker
+          label="Text Color"
+          value={btnProps.customColor || (theme.themeName === 'dark' ? '#000000' : '#ffffff')}
+          onChange={(e) => onPropChange('customColor', e.target.value)}
+        />
       </div>
       <div style={{ borderTop: `1px solid ${theme.Color.Base.Surface[3]}`, margin: `${theme.spacing['Space.L']} 0` }} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing['Space.M'] }}>

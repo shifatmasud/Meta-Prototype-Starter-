@@ -13,6 +13,7 @@ import ControlPanel from '../Package/ControlPanel.tsx';
 import CodePanel from '../Package/CodePanel.tsx';
 import ConsolePanel from '../Package/ConsolePanel.tsx';
 import UndoRedo from '../Package/UndoRedo.tsx';
+import Confetti from '../Core/Confetti.tsx';
 import { WindowId, WindowState, LogEntry, MetaButtonProps } from '../../types/index.tsx';
 
 /**
@@ -24,16 +25,19 @@ const MetaPrototype = () => {
   
   // -- App State --
   const [btnProps, setBtnProps] = useState<MetaButtonProps>({
-    label: 'Interactive',
+    label: 'Do Magic',
     variant: 'primary',
     size: 'M',
     icon: 'ph-sparkle',
     customFill: '',
     customColor: '',
-    customRadius: '999px',
+    customRadius: '56px',
   });
   const [showMeasurements, setShowMeasurements] = useState(false);
   const [showTokens, setShowTokens] = useState(false);
+  
+  // -- Confetti State --
+  const [confettiTrigger, setConfettiTrigger] = useState(0);
 
   // -- Real-time MotionValue for live UI updates --
   const radiusMotionValue = useMotionValue(parseInt(btnProps.customRadius) || 0);
@@ -168,6 +172,11 @@ const MetaPrototype = () => {
     if (showMeasurements) setShowMeasurements(false); // Exclusive toggle
     logEvent(`Tokens toggled: ${!showTokens ? 'On' : 'Off'}`);
   };
+  
+  const handleStageButtonClick = () => {
+    logEvent('Button Clicked! (Triggered Action)');
+    setConfettiTrigger(prev => prev + 1);
+  };
 
   return (
     <div style={{
@@ -181,10 +190,11 @@ const MetaPrototype = () => {
       justifyContent: 'center',
     }}>
       <ThemeToggleButton />
+      <Confetti trigger={confettiTrigger} />
 
       <Stage
         btnProps={{...btnProps, customRadius: radiusStringMotionValue}}
-        onButtonClick={() => logEvent('Button Clicked! (Triggered Action)')}
+        onButtonClick={handleStageButtonClick}
         showMeasurements={showMeasurements}
         showTokens={showTokens}
       />
