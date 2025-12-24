@@ -10,15 +10,29 @@ import Input from '../Core/Input.tsx';
 import Select from '../Core/Select.tsx';
 import RangeSlider from '../Core/RangeSlider.tsx';
 import ColorPicker from '../Core/ColorPicker.tsx';
+import Toggle from '../Core/Toggle.tsx';
 
 interface ControlPanelProps {
   btnProps: MetaButtonProps;
   onPropChange: (key: string, value: any) => void;
   radiusMotionValue: MotionValue<number>;
   onRadiusCommit: (value: number) => void;
+  showMeasurements: boolean;
+  onToggleMeasurements: () => void;
+  showTokens: boolean;
+  onToggleTokens: () => void;
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({ btnProps, onPropChange, radiusMotionValue, onRadiusCommit }) => {
+const ControlPanel: React.FC<ControlPanelProps> = ({ 
+  btnProps, 
+  onPropChange, 
+  radiusMotionValue, 
+  onRadiusCommit, 
+  showMeasurements, 
+  onToggleMeasurements,
+  showTokens,
+  onToggleTokens
+}) => {
   const { theme } = useTheme();
 
   return (
@@ -94,6 +108,19 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ btnProps, onPropChange, rad
             onChange={(e) => onPropChange('customColor', e.target.value)}
           />
         </div>
+      </div>
+      <div style={{ borderTop: `1px solid ${theme.Color.Base.Surface[3]}`, margin: `${theme.spacing['Space.L']} 0` }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing['Space.M'] }}>
+        <Toggle
+          label="Show Measurements"
+          isOn={showMeasurements}
+          onToggle={onToggleMeasurements}
+        />
+        <Toggle
+          label="Show Tokens"
+          isOn={showTokens}
+          onToggle={onToggleTokens}
+        />
       </div>
     </>
   );

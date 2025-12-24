@@ -10,6 +10,7 @@ Hello! You are an AI assistant helping to build this React application. Here are
 -   `metadata.json`
 -   `Theme.tsx`
 -   `hooks/useBreakpoint.tsx`
+-   `hooks/useElementAnatomy.tsx`
 -   `types/index.tsx`
 -   `components/App/MetaPrototype.tsx`
 -   `components/Core/Button.tsx`
@@ -22,6 +23,7 @@ Hello! You are an AI assistant helping to build this React application. Here are
 -   `components/Core/StateLayer.tsx`
 -   `components/Core/TextArea.tsx`
 -   `components/Core/ThemeToggleButton.tsx`
+-   `components/Core/Toggle.tsx`
 -   `components/Package/CodePanel.tsx`
 -   `components/Package/ConsolePanel.tsx`
 -   `components/Package/ControlPanel.tsx`

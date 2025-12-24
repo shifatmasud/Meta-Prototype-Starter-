@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React, { useState, useEffect } from 'react';
-import { useMotionValue, useTransform } from 'framer-motion';
+import { useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../Theme.tsx';
 import ThemeToggleButton from '../Core/ThemeToggleButton.tsx';
 import FloatingWindow from '../Package/FloatingWindow.tsx';
@@ -32,6 +32,8 @@ const MetaPrototype = () => {
     customColor: '',
     customRadius: '999px',
   });
+  const [showMeasurements, setShowMeasurements] = useState(false);
+  const [showTokens, setShowTokens] = useState(false);
 
   // -- Real-time MotionValue for live UI updates --
   const radiusMotionValue = useMotionValue(parseInt(btnProps.customRadius) || 0);
@@ -49,18 +51,22 @@ const MetaPrototype = () => {
   const [history, setHistory] = useState<MetaButtonProps[]>([]);
   const [future, setFuture] = useState<MetaButtonProps[]>([]);
 
-  // -- Window Management --
+  // --- Window Management ---
+  const WINDOW_WIDTH = 400;
+  const CONTROL_PANEL_HEIGHT = 500; // Increased height for new toggle
+  const CODE_PANEL_HEIGHT = 408;
+  const CONSOLE_PANEL_HEIGHT = 148;
+
   const [windows, setWindows] = useState<Record<WindowId, WindowState>>({
-    control: { id: 'control', title: 'Control', isOpen: false, zIndex: 1, x: -220, y: -200 },
-    code: { id: 'code', title: 'Code I/O', isOpen: false, zIndex: 2, x: 0, y: -250 },
-    console: { id: 'console', title: 'Console', isOpen: false, zIndex: 3, x: 220, y: -200 },
+    control: { id: 'control', title: 'Control', isOpen: false, zIndex: 1, x: -WINDOW_WIDTH / 2, y: -CONTROL_PANEL_HEIGHT / 2 },
+    code: { id: 'code', title: 'Code I/O', isOpen: false, zIndex: 2, x: -WINDOW_WIDTH / 2, y: -CODE_PANEL_HEIGHT / 2 },
+    console: { id: 'console', title: 'Console', isOpen: false, zIndex: 3, x: -WINDOW_WIDTH / 2, y: -CONSOLE_PANEL_HEIGHT / 2 },
   });
 
   // -- Code Editor State --
   const [codeText, setCodeText] = useState('');
   const [isCodeFocused, setIsCodeFocused] = useState(false);
   
-  // Sync code text when btnProps changes (if not editing)
   useEffect(() => {
     if (!isCodeFocused) {
       setCodeText(JSON.stringify(btnProps, null, 2));
@@ -131,13 +137,11 @@ const MetaPrototype = () => {
     logEvent('JSON copied to clipboard');
   };
   
-  // Generic handler for most props
   const handlePropChange = (key: string, value: any) => {
     updateBtnProps({ ...btnProps, [key]: value });
     logEvent(`Prop updated: ${key} = ${value}`);
   };
 
-  // Specific handler for committing the radius value to state
   const handleRadiusCommit = (value: number) => {
     handlePropChange('customRadius', `${value}px`);
   }
@@ -151,6 +155,18 @@ const MetaPrototype = () => {
     } catch (err) {
       // Invalid JSON, just update text
     }
+  };
+
+  const handleToggleMeasurements = () => {
+    setShowMeasurements(prev => !prev);
+    if (showTokens) setShowTokens(false); // Exclusive toggle
+    logEvent(`Measurements toggled: ${!showMeasurements ? 'On' : 'Off'}`);
+  };
+
+  const handleToggleTokens = () => {
+    setShowTokens(prev => !prev);
+    if (showMeasurements) setShowMeasurements(false); // Exclusive toggle
+    logEvent(`Tokens toggled: ${!showTokens ? 'On' : 'Off'}`);
   };
 
   return (
@@ -169,48 +185,62 @@ const MetaPrototype = () => {
       <Stage
         btnProps={{...btnProps, customRadius: radiusStringMotionValue}}
         onButtonClick={() => logEvent('Button Clicked! (Triggered Action)')}
+        showMeasurements={showMeasurements}
+        showTokens={showTokens}
       />
 
       {/* --- WINDOWS --- */}
-      <FloatingWindow
-        {...windows.control}
-        onClose={() => toggleWindow('control')}
-        onFocus={() => bringToFront('control')}
-        initialPos={{ x: windows.control.x, y: windows.control.y }}
-        footer={<UndoRedo onUndo={handleUndo} onRedo={handleRedo} canUndo={history.length > 0} canRedo={future.length > 0} />}
-      >
-        <ControlPanel
-            btnProps={btnProps}
-            onPropChange={handlePropChange}
-            radiusMotionValue={radiusMotionValue}
-            onRadiusCommit={handleRadiusCommit}
-        />
-      </FloatingWindow>
+      <AnimatePresence>
+        {windows.control.isOpen && (
+          <FloatingWindow
+            key="control"
+            {...windows.control}
+            onClose={() => toggleWindow('control')}
+            onFocus={() => bringToFront('control')}
+            footer={<UndoRedo onUndo={handleUndo} onRedo={handleRedo} canUndo={history.length > 0} canRedo={future.length > 0} />}
+          >
+            <ControlPanel
+                btnProps={btnProps}
+                onPropChange={handlePropChange}
+                radiusMotionValue={radiusMotionValue}
+                onRadiusCommit={handleRadiusCommit}
+                showMeasurements={showMeasurements}
+                onToggleMeasurements={handleToggleMeasurements}
+                showTokens={showTokens}
+                onToggleTokens={handleToggleTokens}
+            />
+          </FloatingWindow>
+        )}
 
-      <FloatingWindow
-        {...windows.code}
-        onClose={() => toggleWindow('code')}
-        onFocus={() => bringToFront('code')}
-        initialPos={{ x: windows.code.x, y: windows.code.y }}
-      >
-        <CodePanel
-          codeText={codeText}
-          onCodeChange={handleCodeChange}
-          onCopyCode={handleCopyCode}
-          onFocus={() => setIsCodeFocused(true)}
-          onBlur={() => setIsCodeFocused(false)}
-          btnProps={btnProps}
-        />
-      </FloatingWindow>
+        {windows.code.isOpen && (
+          <FloatingWindow
+            key="code"
+            {...windows.code}
+            onClose={() => toggleWindow('code')}
+            onFocus={() => bringToFront('code')}
+          >
+            <CodePanel
+              codeText={codeText}
+              onCodeChange={handleCodeChange}
+              onCopyCode={handleCopyCode}
+              onFocus={() => setIsCodeFocused(true)}
+              onBlur={() => setIsCodeFocused(false)}
+              btnProps={btnProps}
+            />
+          </FloatingWindow>
+        )}
 
-      <FloatingWindow
-        {...windows.console}
-        onClose={() => toggleWindow('console')}
-        onFocus={() => bringToFront('console')}
-        initialPos={{ x: windows.console.x, y: windows.console.y }}
-      >
-        <ConsolePanel logs={logs} />
-      </FloatingWindow>
+        {windows.console.isOpen && (
+          <FloatingWindow
+            key="console"
+            {...windows.console}
+            onClose={() => toggleWindow('console')}
+            onFocus={() => bringToFront('console')}
+          >
+            <ConsolePanel logs={logs} />
+          </FloatingWindow>
+        )}
+      </AnimatePresence>
 
       <Dock windows={windows} toggleWindow={toggleWindow} />
     </div>

@@ -23,8 +23,8 @@ const lightThemeColors = {
     Success: { Surface: { '1': '#E6F4EA' }, Content: { '1': '#1E8E3E' } },
     Warning: { Surface: { '1': '#FFF8E1' }, Content: { '1': '#E67C00' } },
     Error: { Surface: { '1': '#FCE8E6' }, Content: { '1': '#C5221F' } },
-    Focus: { Surface: { '1': '#111111' } },
-    Signal: { Surface: { '1': '#6A1B9A' } }
+    Focus: { Surface: { '1': '#E3F2FD' }, Content: { '1': '#1565C0' } }, // Blue Focus
+    Signal: { Surface: { '1': '#F3E5F5' }, Content: { '1': '#6A1B9A' } } // Restored Pastel Purple
   }
 };
 
@@ -39,10 +39,10 @@ const darkThemeColors = {
       Content: { '1': '#000000', '2': '#FFFFFF' }  // Black text on white
     },
     Success: { Surface: { '1': '#1E3E2F' }, Content: { '1': '#6DD78C' } },
-    Warning: { Surface: { '1': '#4A340D' }, Content: { '1': '#FCC24B' } },
+    Warning: { Surface: { '1': '#4A340D' }, Content: { '1': '#FF9800' } },
     Error: { Surface: { '1': '#4A1D1F' }, Content: { '1': '#F28B82' } },
-    Focus: { Surface: { '1': '#FFFFFF' } },
-    Signal: { Surface: { '1': '#CE93D8' } }
+    Focus: { Surface: { '1': '#0D1B2A' }, Content: { '1': '#64B5F6' } }, // Blue Focus
+    Signal: { Surface: { '1': '#2E0F45' }, Content: { '1': '#D9A7F7' } } // Deep Purple Surface, Light Purple Content
   }
 };
 
@@ -50,7 +50,7 @@ const typography = {
   Type: {
     Expressive: {
       Display: {
-        L: { fontSize: { desktop: '56px', tablet: '52px', mobile: '48px' }, lineHeight: 1.2, fontWeight: 700, letterSpacing: '-0.02em', tag: 'h1', fontFamily: "'Bbas Neue', sans-serif" },
+        L: { fontSize: { desktop: '56px', tablet: '52px', mobile: '48px' }, lineHeight: 1.2, fontWeight: 700, letterSpacing: '-0.02em', tag: 'h1', fontFamily: "'Bebas Neue', sans-serif" },
         M: { fontSize: { desktop: '44px', tablet: '40px', mobile: '40px' }, lineHeight: 1.2, fontWeight: 700, letterSpacing: '-0.02em', tag: 'h2', fontFamily: "'Bebas Neue', sans-serif" },
         S: { fontSize: '36px', lineHeight: 1.2, fontWeight: 700, letterSpacing: '-0.02em', tag: 'h3', fontFamily: "'Bebas Neue', sans-serif" },
       },
@@ -128,10 +128,6 @@ const GlobalStyles = () => { /* ... (no changes needed) ... */
     return <style>{globalCss}</style>;
 };
 
-// FIX: Add a utility type to create a "resolved" version of the theme type.
-// This recursively processes the theme, converting responsive objects (e.g., { mobile: '14px', tablet: '16px' })
-// into their resolved value type (e.g., string). This makes the theme type-safe for consumption
-// in components after the `resolveTokens` function has run.
 type Resolved<T> = T extends { mobile: any } | { tablet: any } | { desktop: any }
   ? T[keyof T]
   : T extends object
@@ -145,8 +141,6 @@ type ThemeName = 'light' | 'dark';
 type ThemeContextType = {
   themeName: ThemeName;
   setThemeName: (themeName: ThemeName) => void;
-  // FIX: Use the ResolvedRawTheme to ensure the theme context provides the correctly typed,
-  // resolved theme object to consumers, preventing type errors in components.
   theme: typeof lightThemeColors & ResolvedRawTheme;
 };
 
@@ -159,7 +153,6 @@ export const ThemeProvider = ({ children }: React.PropsWithChildren) => {
   const smartTheme = useMemo(() => {
     const colorTheme = themes[themeName];
     const resolvedRawTheme = resolveTokens(rawTheme, breakpoint);
-    // Combine the static color theme with the dynamically resolved tokens
     return { ...colorTheme, ...resolvedRawTheme };
   }, [themeName, breakpoint]);
 

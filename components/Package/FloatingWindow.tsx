@@ -3,42 +3,48 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React from 'react';
-import { motion, AnimatePresence, useDragControls, useMotionValue } from 'framer-motion';
+import { motion, useDragControls, useMotionValue } from 'framer-motion';
 import { useTheme } from '../../Theme.tsx';
 
 /**
  * 🧱 Floating Window Component
- * Implements the "Meta Prototype" window specification.
- * Uses useMotionValue to handle position to prevent re-renders (zIndex updates)
- * from resetting the drag position.
+ * This component is now a pure presentational component for a draggable window.
+ * Its mounting/unmounting (and thus its open/closed state and animations) are
+ * controlled by AnimatePresence in its parent component.
  */
-const FloatingWindow = ({
-  title,
-  isOpen,
-  zIndex,
-  onClose,
-  onFocus,
-  children,
-  footer,
-  initialPos,
-}: {
+interface FloatingWindowProps {
   title: string;
-  isOpen: boolean;
   zIndex: number;
+  x: number;
+  y: number;
   onClose: () => void;
   onFocus: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  initialPos: { x: number; y: number };
+}
+
+const FloatingWindow: React.FC<FloatingWindowProps> = ({
+  title,
+  zIndex,
+  x: initialX,
+  y: initialY,
+  onClose,
+  onFocus,
+  children,
+  footer,
 }) => {
   const { theme } = useTheme();
   const dragControls = useDragControls();
   
-  const x = useMotionValue(initialPos.x);
-  const y = useMotionValue(initialPos.y);
+  // Initialize MotionValues with the position from props. Because this component
+  // is now unmounted when closed, these will be correctly re-initialized each time.
+  const x = useMotionValue(initialX);
+  const y = useMotionValue(initialY);
 
   const styles: React.CSSProperties = {
     position: 'absolute',
+    top: '50%',
+    left: '50%',
     width: '400px',
     height: 'auto',
     maxHeight: '600px',
@@ -89,69 +95,65 @@ const FloatingWindow = ({
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          style={{ ...styles, x, y }}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          drag
-          dragListener={false}
-          dragControls={dragControls}
-          dragMomentum={false}
-          onPointerDown={() => onFocus()}
-          transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-        >
-          <div
-            style={headerStyle}
-            onPointerDown={(e) => {
-              e.preventDefault();
-              dragControls.start(e);
+    <motion.div
+      style={{ ...styles, x, y }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      drag
+      dragListener={false}
+      dragControls={dragControls}
+      dragMomentum={false}
+      onPointerDown={() => onFocus()}
+      transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+    >
+      <div
+        style={headerStyle}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          dragControls.start(e);
+        }}
+      >
+          <span style={{ ...theme.Type.Readable.Label.M, color: theme.Color.Base.Content[1], letterSpacing: '0.05em' }}>
+            {title.toUpperCase()}
+          </span>
+          <motion.button
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            style={{
+              width: '14px',
+              height: '14px',
+              borderRadius: '50%',
+              backgroundColor: theme.Color.Error.Content[1],
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: theme.effects['Effect.Shadow.Inset.1'],
             }}
-          >
-             <span style={{ ...theme.Type.Readable.Label.M, color: theme.Color.Base.Content[1], letterSpacing: '0.05em' }}>
-               {title.toUpperCase()}
-             </span>
-             <motion.button
-               onClick={(e) => { e.stopPropagation(); onClose(); }}
-               style={{
-                 width: '14px',
-                 height: '14px',
-                 borderRadius: '50%',
-                 backgroundColor: theme.Color.Error.Content[1],
-                 border: 'none',
-                 cursor: 'pointer',
-                 boxShadow: theme.effects['Effect.Shadow.Inset.1'],
-               }}
-               whileHover={{ scale: 1.2 }}
-               whileTap={{ scale: 0.9 }}
-               aria-label="Close"
-               onPointerDown={(e) => e.stopPropagation()}
-             />
-          </div>
-          
-          <div
-            style={contentStyle}
-            onPointerDown={(e) => {
-              e.stopPropagation(); 
-            }}
-          >
-            {children}
-          </div>
+            whileHover={{ scale: 1.2 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Close"
+            onPointerDown={(e) => e.stopPropagation()}
+          />
+      </div>
+      
+      <div
+        style={contentStyle}
+        onPointerDown={(e) => {
+          e.stopPropagation(); 
+        }}
+      >
+        {children}
+      </div>
 
-          <div
-            style={footerStyle}
-            onPointerDown={(e) => {
-              e.preventDefault();
-              dragControls.start(e);
-            }}
-          >
-            {footer || <div style={{ width: '100%', height: '4px', borderRadius: '2px', backgroundColor: theme.Color.Base.Surface[3] }} />}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      <div
+        style={footerStyle}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          dragControls.start(e);
+        }}
+      >
+        {footer || <div style={{ width: '100%', height: '4px', borderRadius: '2px', backgroundColor: theme.Color.Base.Surface[3] }} />}
+      </div>
+    </motion.div>
   );
 };
 

@@ -12,10 +12,11 @@ Imagine you're building with LEGOs. This project gives you a super organized box
 -   **`Theme.tsx`**: The "master closet" for our app's style (colors, fonts, etc.).
 -   **`hooks/`**: Special tools (custom hooks).
     -   `useBreakpoint.tsx`: Checks if you're on a phone, tablet, or desktop.
+    -   `useElementAnatomy.tsx`: A special ruler that precisely measures a component and its inner parts.
 -   **`types/`**: A dictionary for our app's data shapes.
     -   `index.tsx`: Defines what a "Window" or a "Log Entry" looks like.
 -   **`components/`**: The LEGO pieces themselves, organized by complexity!
-    -   **`Core/`**: The most basic, single-purpose pieces (Button, Input, Select, etc.).
+    -   **`Core/`**: The most basic, single-purpose pieces (Button, Input, Toggle, etc.).
     -   **`Package/`**: Combines Core pieces into something more useful (`ControlPanel`, `FloatingWindow`).
     -   **`Section/`**: A whole section of the app (the `Dock` at the bottom, the main `Stage`).
     -   **`Page/`**: A full screen you see (`Welcome` page).
@@ -42,7 +43,8 @@ Imagine you're building with LEGOs. This project gives you a super organized box
 │   │   ├── Select.tsx
 │   │   ├── StateLayer.tsx
 │   │   ├── TextArea.tsx
-│   │   └── ThemeToggleButton.tsx
+│   │   ├── ThemeToggleButton.tsx
+│   │   └── Toggle.tsx
 │   ├── Package/
 │   │   ├── CodePanel.tsx
 │   │   ├── ConsolePanel.tsx
@@ -55,7 +57,8 @@ Imagine you're building with LEGOs. This project gives you a super organized box
 │       ├── Dock.tsx
 │       └── Stage.tsx
 ├── hooks/
-│   └── useBreakpoint.tsx
+│   ├── useBreakpoint.tsx
+│   └── useElementAnatomy.tsx
 ├── types/
 │   └── index.tsx
 ├── README.md

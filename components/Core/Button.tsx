@@ -2,7 +2,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTheme } from '../../Theme.tsx';
 import { motion, MotionValue } from 'framer-motion';
 import StateLayer from './StateLayer.tsx';
@@ -22,7 +22,7 @@ interface ButtonProps {
   disabled?: boolean;
 }
 
-const Button: React.FC<ButtonProps> = ({
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   variant = 'primary',
   size = 'M',
   label,
@@ -32,9 +32,8 @@ const Button: React.FC<ButtonProps> = ({
   customColor,
   customRadius,
   disabled = false,
-}) => {
+}, ref) => {
   const { theme } = useTheme();
-  const buttonRef = useRef<HTMLButtonElement>(null);
   
   // Interaction State
   const [isActive, setIsActive] = useState(false);
@@ -44,8 +43,9 @@ const Button: React.FC<ButtonProps> = ({
   // Handle Interaction Logic
   const handleInteractionStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (disabled) return;
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
+    const buttonEl = (e.currentTarget as HTMLButtonElement);
+    if (buttonEl) {
+      const rect = buttonEl.getBoundingClientRect();
       const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
       
@@ -128,7 +128,7 @@ const Button: React.FC<ButtonProps> = ({
     overflow: 'hidden',
     fontWeight: 600,
     fontFamily: theme.Type.Readable.Label.M.fontFamily,
-    transition: `transform ${theme.time['Time.1x']} ease`, // Removed border-radius transition for smoother MotionValue updates
+    transition: `transform ${theme.time['Time.1x']} ease`,
     ...variantStyles,
     ...sizeStyles,
   };
@@ -138,7 +138,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <motion.button
-      ref={buttonRef}
+      ref={ref}
       style={{
         ...styles,
         borderRadius: customRadius || theme.radius['Radius.Full'],
@@ -164,6 +164,6 @@ const Button: React.FC<ButtonProps> = ({
       <span style={{ zIndex: 1, position: 'relative' }}>{label}</span>
     </motion.button>
   );
-};
+});
 
 export default Button;
