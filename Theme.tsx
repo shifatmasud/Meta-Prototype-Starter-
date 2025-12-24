@@ -40,7 +40,7 @@ const darkThemeColors = {
     },
     Success: { Surface: { '1': '#1E3E2F' }, Content: { '1': '#6DD78C' } },
     Warning: { Surface: { '1': '#4A340D' }, Content: { '1': '#FF9800' } },
-    Error: { Surface: { '1': '#4A1D1F' }, Content: { '1': '#F28B82' } },
+    Error: { Surface: { '1': '#591111' }, Content: { '1': '#FF453A' } }, // Rich Saturated Red
     Focus: { Surface: { '1': '#0D1B2A' }, Content: { '1': '#64B5F6' } }, // Blue Focus
     Signal: { Surface: { '1': '#2E0F45' }, Content: { '1': '#D9A7F7' } } // Deep Purple Surface, Light Purple Content
   }
