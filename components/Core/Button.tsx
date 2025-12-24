@@ -136,6 +136,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   // State Layer Color derivation
   const stateLayerColor = variant === 'primary' ? theme.Color.Accent.Content[1] : theme.Color.Base.Content[1];
 
+  // New styles for content to prevent selection/dragging
+  const contentStyles: React.CSSProperties = {
+    zIndex: 1,
+    position: 'relative',
+    userSelect: 'none',
+    pointerEvents: 'none',
+  };
+
   return (
     <motion.button
       ref={ref}
@@ -160,8 +168,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
         height={dimensions.height} 
       />
       
-      {icon && <i className={`ph-bold ${icon}`} style={{ fontSize: '1.25em', zIndex: 1, position: 'relative' }} />}
-      <span style={{ zIndex: 1, position: 'relative' }}>{label}</span>
+      {icon && <i className={`ph-bold ${icon}`} draggable={false} style={{ ...contentStyles, fontSize: '1.25em' }} />}
+      <span draggable={false} style={contentStyles}>{label}</span>
     </motion.button>
   );
 });
