@@ -5,6 +5,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
+export interface Ripple {
+  id: number;
+  x: number;
+  y: number;
+}
+
 interface StateLayerProps {
   color: string;
   isActive: boolean;
@@ -12,15 +18,26 @@ interface StateLayerProps {
   y: number;
   width: number;
   height: number;
+  ripples?: Ripple[];
+  onRippleComplete?: (id: number) => void;
 }
 
 /**
  * 🔮 THE STATE LAYER
  * An interactive soul that provides organic feedback relative to touch/cursor position.
+ * Now features both a persistent 'active' state and transient 'ripple' bursts.
  */
-const StateLayer: React.FC<StateLayerProps> = ({ color, isActive, x, y, width, height }) => {
+const StateLayer: React.FC<StateLayerProps> = ({ 
+  color, 
+  isActive, 
+  x, 
+  y, 
+  width, 
+  height,
+  ripples = [],
+  onRippleComplete
+}) => {
   // Calculate the diameter needed to cover the button from the furthest corner.
-  // We multiply by 2.5 to ensure the radius comfortably covers the entire area with margin.
   const maxDiameter = Math.hypot(width, height) * 2.5;
 
   const styles: React.CSSProperties = {
@@ -35,7 +52,8 @@ const StateLayer: React.FC<StateLayerProps> = ({ color, isActive, x, y, width, h
     zIndex: 0,
   };
 
-  const rippleStyles: React.CSSProperties = {
+  // The existing persistent press layer (User likes this)
+  const activeLayerStyles: React.CSSProperties = {
     position: 'absolute',
     top: y,
     left: x,
@@ -44,14 +62,15 @@ const StateLayer: React.FC<StateLayerProps> = ({ color, isActive, x, y, width, h
     backgroundColor: color,
     borderRadius: '50%',
     transform: 'translate(-50%, -50%)',
-    opacity: 0.15, // Visual rule: 15% opacity for state layer interactions
+    opacity: 0.15,
     pointerEvents: 'none',
   };
 
   return (
     <div style={styles}>
+      {/* 1. Persistent Active State (Hold) */}
       <motion.div
-        style={rippleStyles}
+        style={activeLayerStyles}
         initial={false}
         animate={{
           width: isActive ? maxDiameter : 0,
@@ -64,6 +83,38 @@ const StateLayer: React.FC<StateLayerProps> = ({ color, isActive, x, y, width, h
           mass: 0.5,
         }}
       />
+
+      {/* 2. Transient Ripples (Click/Tap) */}
+      {ripples.map((ripple) => (
+        <motion.div
+          key={ripple.id}
+          initial={{
+            width: 0,
+            height: 0,
+            opacity: 0.12, // Reduced opacity for gentleness
+          }}
+          animate={{
+            width: maxDiameter,
+            height: maxDiameter,
+            opacity: 0,
+            filter: 'blur(16px)', // Softer blur
+          }}
+          style={{
+            position: 'absolute',
+            top: ripple.y,
+            left: ripple.x,
+            backgroundColor: color,
+            borderRadius: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+          }}
+          transition={{
+            duration: 3.0, // Ultra-gentle duration
+            ease: [0.16, 1, 0.3, 1], // Very soft ease-out
+          }}
+          onAnimationComplete={() => onRippleComplete && onRippleComplete(ripple.id)}
+        />
+      ))}
     </div>
   );
 };

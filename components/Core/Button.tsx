@@ -2,10 +2,10 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useTheme } from '../../Theme.tsx';
 import { motion, MotionValue } from 'framer-motion';
-import StateLayer from './StateLayer.tsx';
+import StateLayer, { Ripple } from './StateLayer.tsx';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
 export type ButtonSize = 'S' | 'M' | 'L';
@@ -39,6 +39,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   const [isActive, setIsActive] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [ripples, setRipples] = useState<Ripple[]>([]);
 
   // Handle Interaction Logic
   const handleInteractionStart = (e: React.MouseEvent | React.TouchEvent) => {
@@ -49,20 +50,27 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
       const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
       
-      setCoords({
-        x: clientX - rect.left,
-        y: clientY - rect.top,
-      });
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+
+      setCoords({ x, y });
       setDimensions({
         width: rect.width,
         height: rect.height,
       });
       setIsActive(true);
+      
+      // Add a transient ripple
+      setRipples(prev => [...prev, { id: Date.now() + Math.random(), x, y }]);
     }
   };
 
   const handleInteractionEnd = () => {
     setIsActive(false);
+  };
+
+  const handleRippleComplete = (id: number) => {
+    setRipples(prev => prev.filter(r => r.id !== id));
   };
 
   // Style Logic
@@ -165,7 +173,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
         x={coords.x} 
         y={coords.y} 
         width={dimensions.width} 
-        height={dimensions.height} 
+        height={dimensions.height}
+        ripples={ripples}
+        onRippleComplete={handleRippleComplete}
       />
       
       {icon && <i className={`ph-bold ${icon}`} draggable={false} style={{ ...contentStyles, fontSize: '1.25em' }} />}
