@@ -51,9 +51,9 @@ const MetaPrototype = () => {
 
   // -- Window Management --
   const [windows, setWindows] = useState<Record<WindowId, WindowState>>({
-    control: { id: 'control', title: 'Control', isOpen: true, zIndex: 1, x: -450, y: -250 },
-    code: { id: 'code', title: 'Code I/O', isOpen: true, zIndex: 2, x: 0, y: -250 },
-    console: { id: 'console', title: 'Console', isOpen: true, zIndex: 3, x: 450, y: -250 },
+    control: { id: 'control', title: 'Control', isOpen: false, zIndex: 1, x: -220, y: -200 },
+    code: { id: 'code', title: 'Code I/O', isOpen: false, zIndex: 2, x: 0, y: -250 },
+    console: { id: 'console', title: 'Console', isOpen: false, zIndex: 3, x: 220, y: -200 },
   });
 
   // -- Code Editor State --
@@ -176,7 +176,7 @@ const MetaPrototype = () => {
         {...windows.control}
         onClose={() => toggleWindow('control')}
         onFocus={() => bringToFront('control')}
-        initialPos={{ x: -450, y: -250 }}
+        initialPos={{ x: windows.control.x, y: windows.control.y }}
         footer={<UndoRedo onUndo={handleUndo} onRedo={handleRedo} canUndo={history.length > 0} canRedo={future.length > 0} />}
       >
         <ControlPanel
@@ -191,7 +191,7 @@ const MetaPrototype = () => {
         {...windows.code}
         onClose={() => toggleWindow('code')}
         onFocus={() => bringToFront('code')}
-        initialPos={{ x: 0, y: 150 }}
+        initialPos={{ x: windows.code.x, y: windows.code.y }}
       >
         <CodePanel
           codeText={codeText}
@@ -207,7 +207,7 @@ const MetaPrototype = () => {
         {...windows.console}
         onClose={() => toggleWindow('console')}
         onFocus={() => bringToFront('console')}
-        initialPos={{ x: 450, y: -250 }}
+        initialPos={{ x: windows.console.x, y: windows.console.y }}
       >
         <ConsolePanel logs={logs} />
       </FloatingWindow>

@@ -20,14 +20,14 @@ const UndoRedo: React.FC<UndoRedoProps> = ({ onUndo, onRedo, canUndo, canRedo })
     <div
       style={{
         display: 'flex',
-        gap: theme.spacing['Space.M'],
+        gap: theme.spacing['Space.S'],
         width: '100%',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
       }}
       onPointerDown={(e) => e.stopPropagation()}
     >
       <Button
-        label="Undo"
+        label=""
         icon="ph-arrow-u-up-left"
         size="S"
         variant="ghost"
@@ -35,7 +35,7 @@ const UndoRedo: React.FC<UndoRedoProps> = ({ onUndo, onRedo, canUndo, canRedo })
         onClick={onUndo}
       />
       <Button
-        label="Redo"
+        label=""
         icon="ph-arrow-u-up-right"
         size="S"
         variant="ghost"

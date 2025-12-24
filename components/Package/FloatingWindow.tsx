@@ -78,7 +78,7 @@ const FloatingWindow = ({
     height: '48px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     padding: `0 ${theme.spacing['Space.L']}`,
     borderTop: `1px solid ${theme.Color.Base.Surface[2]}`,
     cursor: 'grab',

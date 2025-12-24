@@ -55,7 +55,7 @@ const ThemeToggleButton = () => {
       <AnimatePresence mode="wait" initial={false}>
         <motion.i
           key={themeName}
-          className={themeName === 'dark' ? 'ph ph-moon' : 'ph ph-sun'}
+          className={themeName === 'dark' ? 'ph-bold ph-moon' : 'ph-bold ph-sun'}
           style={styles.icon}
           variants={iconVariants}
           initial="hidden"

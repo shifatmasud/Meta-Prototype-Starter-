@@ -45,7 +45,7 @@ const CodePanel: React.FC<CodePanelProps> = ({ codeText, onCodeChange, onCopyCod
           aria-label="Copy JSON"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <i className="ph ph-copy" style={{ fontSize: '14px' }} />
+          <i className="ph-bold ph-copy" style={{ fontSize: '14px' }} />
         </motion.button>
       </div>
       <div style={{ marginTop: theme.spacing['Space.L'] }}>

@@ -160,7 +160,7 @@ const Button: React.FC<ButtonProps> = ({
         height={dimensions.height} 
       />
       
-      {icon && <i className={`ph ${icon}`} style={{ fontSize: '1.25em', zIndex: 1, position: 'relative' }} />}
+      {icon && <i className={`ph-bold ${icon}`} style={{ fontSize: '1.25em', zIndex: 1, position: 'relative' }} />}
       <span style={{ zIndex: 1, position: 'relative' }}>{label}</span>
     </motion.button>
   );
