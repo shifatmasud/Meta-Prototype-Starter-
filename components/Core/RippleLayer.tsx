@@ -95,7 +95,7 @@ const RippleLayer: React.FC<RippleLayerProps> = ({
               pointerEvents: 'none',
             }}
             transition={{
-              duration: 3.5, // Ultra-slow liquid ripple
+              duration: 3, // Ultra-slow liquid ripple
               ease: [0.2, 0, 0, 1], // Deep ease-out
             }}
             onAnimationComplete={() => onRippleComplete(ripple.id)}
