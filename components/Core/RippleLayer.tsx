@@ -17,19 +17,21 @@ interface RippleLayerProps {
   onRippleComplete: (id: number) => void;
   width: number;
   height: number;
+  opacity?: number;
 }
 
 /**
- * 💧 RIPPLE LAYER
+ * 💧 RIPPLE LAYER (Tap / Click Burst)
  * Handles transient burst animations (ripples) for click/tap interactions.
- * Decoupled from the persistent state layer for better performance and separation of concerns.
+ * This is fully decoupled from the persistent StateLayer.
  */
 const RippleLayer: React.FC<RippleLayerProps> = ({ 
   color, 
   ripples, 
   onRippleComplete,
   width,
-  height
+  height,
+  opacity = 0.25 
 }) => {
   // Calculate the diameter needed to cover the component from the center or furthest corner.
   const maxDiameter = Math.hypot(width, height) * 2.5;
@@ -43,7 +45,7 @@ const RippleLayer: React.FC<RippleLayerProps> = ({
     overflow: 'hidden',
     borderRadius: 'inherit',
     pointerEvents: 'none',
-    zIndex: 0,
+    zIndex: 0, // Sits on top of background but below content
   };
 
   return (
@@ -55,13 +57,13 @@ const RippleLayer: React.FC<RippleLayerProps> = ({
             initial={{
               width: 0,
               height: 0,
-              opacity: 0.35, // Visible start opacity
+              opacity: 0,
             }}
             animate={{
               width: maxDiameter,
               height: maxDiameter,
-              opacity: 0,
-              filter: 'blur(16px)', // Soft blur on expansion
+              opacity: [opacity * 0.5, opacity, 0], // Flash then fade
+              filter: 'blur(8px)', // Soft blur
             }}
             exit={{ opacity: 0 }}
             style={{
@@ -74,8 +76,8 @@ const RippleLayer: React.FC<RippleLayerProps> = ({
               pointerEvents: 'none',
             }}
             transition={{
-              duration: 3.0, // Ultra-gentle duration (Premium feel)
-              ease: [0.16, 1, 0.3, 1], // Very soft ease-out
+              duration: 3.5, // Ultra-slow liquid ripple
+              ease: [0.2, 0, 0, 1], // Deep ease-out
             }}
             onAnimationComplete={() => onRippleComplete(ripple.id)}
           />

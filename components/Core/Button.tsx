@@ -38,7 +38,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   
   // Interaction State
   const [isHovered, setIsHovered] = useState(false);
-  const [isPressed, setIsPressed] = useState(false);
+  // Hover Session ID to ensure distinct enter/leave animations
+  const [hoverSession, setHoverSession] = useState(0);
   
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -63,6 +64,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     setCoords({ x, y });
     setDimensions({ width, height });
     setIsHovered(true);
+    // Increment session to treat this as a fresh entry for StateLayer
+    setHoverSession(prev => prev + 1);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -73,7 +76,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
 
   const handlePointerLeave = () => {
     setIsHovered(false);
-    setIsPressed(false);
   };
 
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -81,14 +83,26 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     const { x, y, width, height } = getCoords(e);
     setCoords({ x, y });
     setDimensions({ width, height });
-    setIsPressed(true);
-    
-    // Add transient ripple
-    setRipples(prev => [...prev, { id: Date.now() + Math.random(), x, y }]);
+    // Note: We do NOT trigger ripples here anymore to avoid 'touch' start ripples.
   };
 
-  const handlePointerUp = () => {
-    setIsPressed(false);
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+    
+    // Trigger Ripple on valid Click/Tap only
+    const { width, height } = getCoords(e);
+    let { x, y } = getCoords(e);
+
+    // Handle Keyboard click (coordinates are 0)
+    if (e.detail === 0) {
+       x = width / 2;
+       y = height / 2;
+    }
+
+    setRipples(prev => [...prev, { id: Date.now() + Math.random(), x, y }]);
+
+    // Forward event
+    if (onClick) onClick();
   };
 
   const handleRippleComplete = (id: number) => {
@@ -164,11 +178,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     ...sizeStyles,
   };
 
-  // State Layer Color derivation
-  const stateLayerColor = variant === 'primary' ? theme.Color.Accent.Content[1] : theme.Color.Base.Content[1];
+  // Feedback Color Derivation
+  const feedbackColor = variant === 'primary' ? theme.Color.Accent.Content[1] : theme.Color.Base.Content[1];
   
-  // Opacity: Press (35%) > Hover (25%)
-  const stateLayerOpacity = isPressed ? 0.35 : (isHovered ? 0.25 : 0);
+  // State Layer Opacity (Hover/Active presence only)
+  const stateLayerOpacity = 0.3; 
 
   // New styles for content to prevent selection/dragging
   const contentStyles: React.CSSProperties = {
@@ -185,17 +199,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
         ...styles,
         borderRadius: customRadius || theme.radius['Radius.Full'],
       }}
-      onClick={onClick}
+      onClick={handleClick}
       onPointerEnter={handlePointerEnter}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
       whileTap={{ scale: 0.96 }}
     >
+      {/* 
+        Decoupled Layers:
+        1. StateLayer: Persistent active state. Uses hoverSession to ensure unique animations on re-entry.
+        2. RippleLayer: Transient tap burst.
+      */}
       <StateLayer 
-        color={customColor || stateLayerColor} 
-        isActive={isHovered || isPressed} 
+        color={customColor || feedbackColor} 
+        isActive={isHovered} 
+        sessionKey={hoverSession}
         opacity={stateLayerOpacity}
         x={coords.x} 
         y={coords.y} 
@@ -204,7 +223,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
       />
       
       <RippleLayer
-        color={customColor || stateLayerColor}
+        color={customColor || feedbackColor}
         ripples={ripples}
         onRippleComplete={handleRippleComplete}
         width={dimensions.width} 

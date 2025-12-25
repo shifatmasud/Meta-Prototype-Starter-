@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface StateLayerProps {
   color: string;
   isActive: boolean;
+  sessionKey?: number; // Unique key to identify hover session
   x: number;
   y: number;
   width: number;
@@ -16,18 +17,19 @@ interface StateLayerProps {
 }
 
 /**
- * 🔮 STATE LAYER
+ * 🔮 STATE LAYER (Hover / Touch Spotlight)
  * An interactive soul that provides organic feedback relative to touch/cursor position.
- * Handles the persistent 'active' state (Hover/Press) that follows the user's pointer.
+ * Handles persistent 'active' state (Hover) with graceful exit/entry transitions.
  */
 const StateLayer: React.FC<StateLayerProps> = ({ 
   color, 
   isActive, 
+  sessionKey = 0,
   x, 
   y, 
   width, 
   height,
-  opacity = 0.15,
+  opacity = 0.3, 
 }) => {
   // Calculate diameter to ensure full coverage
   const maxDiameter = Math.hypot(width, height) * 2.5;
@@ -44,36 +46,43 @@ const StateLayer: React.FC<StateLayerProps> = ({
     zIndex: 0,
   };
 
-  const activeLayerStyles: React.CSSProperties = {
-    position: 'absolute',
-    top: y,
-    left: x,
-    width: 0,
-    height: 0,
-    backgroundColor: color,
-    borderRadius: '50%',
-    transform: 'translate(-50%, -50%)',
-    pointerEvents: 'none',
-  };
-
   return (
     <div style={styles}>
-      {/* Persistent Active State (Hold & Hover) */}
-      <motion.div
-        style={activeLayerStyles}
-        initial={false}
-        animate={{
-          width: isActive ? maxDiameter : 0,
-          height: isActive ? maxDiameter : 0,
-          opacity: isActive ? opacity : 0,
-        }}
-        transition={{
-          type: 'spring',
-          stiffness: 120,
-          damping: 25,
-          mass: 0.5,
-        }}
-      />
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            key={sessionKey} // Crucial: Ensures new hover session creates a NEW element, allowing the old one to exit gracefully
+            style={{
+              position: 'absolute',
+              top: y,
+              left: x,
+              backgroundColor: color,
+              borderRadius: '50%',
+              transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none',
+            }}
+            initial={{
+              width: 0,
+              height: 0,
+              opacity: 0,
+            }}
+            animate={{
+              width: maxDiameter,
+              height: maxDiameter,
+              opacity: opacity,
+            }}
+            exit={{
+              opacity: 0,
+              // We maintain the size or even expand slightly to feel "released"
+              // Importantly, it stays at the Last Known Position (LKP) because props don't update on exiting nodes
+            }}
+            transition={{
+              duration: 3.0, // Slow, premium hover effect
+              ease: [0.2, 0, 0, 1], // Custom deep ease-out curve
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
