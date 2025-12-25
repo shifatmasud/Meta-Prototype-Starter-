@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import { useTheme } from '../../Theme.tsx';
-import { motion, type MotionValue } from 'framer-motion';
+import { motion, type MotionValue, useTransform, useMotionValue } from 'framer-motion';
 import StateLayer from './StateLayer.tsx';
 import RippleLayer, { Ripple } from './RippleLayer.tsx';
 
@@ -21,6 +21,8 @@ interface ButtonProps {
   customColor?: string;
   customRadius?: string | MotionValue<string>;
   disabled?: boolean;
+  layerSpacing?: MotionValue<number>;
+  view3D?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
@@ -33,6 +35,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   customColor,
   customRadius,
   disabled = false,
+  layerSpacing,
+  view3D = false,
 }, ref) => {
   const { theme } = useTheme();
   
@@ -42,6 +46,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [ripples, setRipples] = useState<Ripple[]>([]);
+
+  // 3D Layer Transforms
+  const defaultLayerSpacing = useMotionValue(0);
+  const effectiveLayerSpacing = layerSpacing || defaultLayerSpacing;
+
+  const zStateLayer = useTransform(effectiveLayerSpacing, v => `translateZ(${v}px)`);
+  const zRippleLayer = useTransform(effectiveLayerSpacing, v => `translateZ(${v * 2}px)`);
+  const zContent = useTransform(effectiveLayerSpacing, v => `translateZ(${v * 3}px)`);
 
   // Helper to calculate relative coordinates
   const getCoords = (e: React.PointerEvent | React.MouseEvent) => {
@@ -166,10 +178,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     // borderRadius is handled dynamically below
     cursor: disabled ? 'not-allowed' : 'pointer',
     opacity: disabled ? 0.5 : 1,
-    overflow: 'hidden',
+    overflow: 'visible', // Changed from hidden to visible for 3D extrusion
     fontWeight: 600,
     fontFamily: theme.Type.Readable.Label.M.fontFamily,
     transition: `transform ${theme.time['Time.1x']} ease, box-shadow ${theme.time['Time.1x']} ease`,
+    transformStyle: 'preserve-3d', // Enable 3D space for children
     ...variantStyles,
     ...sizeStyles,
   };
@@ -180,13 +193,37 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   // State Layer Opacity (Hover/Active presence only)
   const stateLayerOpacity = 0.1; 
 
-  // New styles for content to prevent selection/dragging
-  const contentStyles: React.CSSProperties = {
-    zIndex: 1,
-    position: 'relative',
-    userSelect: 'none',
-    pointerEvents: 'none',
+  // Layer wrapper styles for 3D
+  const layerWrapperStyle: React.CSSProperties = {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      borderRadius: 'inherit',
+      pointerEvents: 'none',
+      transformStyle: 'preserve-3d',
   };
+
+  const contentWrapperStyle: React.CSSProperties = {
+    position: 'relative',
+    zIndex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing['Space.S'],
+    pointerEvents: 'none',
+    userSelect: 'none',
+  };
+
+  // 3D Debug Colors (Matched to Stage.tsx HUD)
+  const colors = {
+      surface: theme.Color.Base.Content[2],
+      state: theme.Color.Signal.Content[1],
+      ripple: theme.Color.Focus.Content[1],
+      content: theme.Color.Accent.Content[1],
+  };
+
+  const getDebugBorder = (color: string) => view3D ? `1px solid ${color}` : 'none';
 
   return (
     <motion.button
@@ -203,30 +240,52 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
       whileTap={{ scale: 0.96 }}
     >
       {/* 
-        Decoupled Layers:
-        1. StateLayer: Persistent active state. Physics-based spotlight.
-        2. RippleLayer: Transient tap burst.
+        Decoupled Layers with 3D Support:
+        We wrap each layer in a motion.div to apply Z-translation.
+        Clip-path or overflow:hidden is applied on the wrapper to respect border-radius.
       */}
-      <StateLayer 
-        color={customColor || feedbackColor} 
-        isActive={isHovered} 
-        opacity={stateLayerOpacity}
-        x={coords.x} 
-        y={coords.y} 
-        width={dimensions.width} 
-        height={dimensions.height}
-      />
       
-      <RippleLayer
-        color={customColor || feedbackColor}
-        ripples={ripples}
-        onRippleComplete={handleRippleComplete}
-        width={dimensions.width} 
-        height={dimensions.height}
-      />
+      {/* 0. SURFACE LAYER (Base Z=0 Debug Info) */}
+      <motion.div style={{ ...layerWrapperStyle, zIndex: 0, border: getDebugBorder(colors.surface) }} />
+
+      {/* 1. STATE LAYER (Bottom) */}
+      <motion.div style={{ ...layerWrapperStyle, transform: zStateLayer }}>
+        <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: 'inherit', border: getDebugBorder(colors.state) }}>
+            <StateLayer 
+                color={customColor || feedbackColor} 
+                isActive={isHovered} 
+                opacity={stateLayerOpacity}
+                x={coords.x} 
+                y={coords.y} 
+                width={dimensions.width} 
+                height={dimensions.height}
+            />
+        </div>
+      </motion.div>
       
-      {icon && <i className={`ph-bold ${icon}`} draggable={false} style={{ ...contentStyles, fontSize: '1.25em' }} />}
-      <span draggable={false} style={contentStyles}>{label}</span>
+      {/* 2. RIPPLE LAYER (Middle) */}
+      <motion.div style={{ ...layerWrapperStyle, transform: zRippleLayer }}>
+        <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: 'inherit', border: getDebugBorder(colors.ripple) }}>
+            <RippleLayer
+                color={customColor || feedbackColor}
+                ripples={ripples}
+                onRippleComplete={handleRippleComplete}
+                width={dimensions.width} 
+                height={dimensions.height}
+            />
+        </div>
+      </motion.div>
+      
+      {/* 3. CONTENT LAYER (Top) */}
+      
+      {/* Visual Plane for Content (Border/Label) */}
+      <motion.div style={{ ...layerWrapperStyle, transform: zContent, border: getDebugBorder(colors.content) }} />
+
+      {/* Actual Content (Relative Position for Sizing + Translated) */}
+      <motion.div style={{ ...contentWrapperStyle, transform: zContent }}>
+        {icon && <i className={`ph-bold ${icon}`} draggable={false} style={{ fontSize: '1.25em' }} />}
+        <span draggable={false}>{label}</span>
+      </motion.div>
     </motion.button>
   );
 });

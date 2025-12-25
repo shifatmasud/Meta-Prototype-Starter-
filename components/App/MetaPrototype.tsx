@@ -33,9 +33,17 @@ const MetaPrototype = () => {
     customColor: '',
     customRadius: '56px',
   });
+  
+  // -- View / Inspection State --
   const [showMeasurements, setShowMeasurements] = useState(false);
   const [showTokens, setShowTokens] = useState(false);
   
+  // 3D Layer View State
+  const [view3D, setView3D] = useState(false);
+  const layerSpacing = useMotionValue(0);
+  const viewRotateX = useMotionValue(55);
+  const viewRotateZ = useMotionValue(45);
+
   // -- Confetti State --
   const [confettiTrigger, setConfettiTrigger] = useState(0);
 
@@ -47,6 +55,15 @@ const MetaPrototype = () => {
   useEffect(() => {
     radiusMotionValue.set(parseInt(btnProps.customRadius) || 0);
   }, [btnProps.customRadius, radiusMotionValue]);
+  
+  // Auto-expand layers when entering 3D mode
+  useEffect(() => {
+    if (view3D) {
+      layerSpacing.set(40);
+    } else {
+      layerSpacing.set(0);
+    }
+  }, [view3D, layerSpacing]);
 
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -57,7 +74,7 @@ const MetaPrototype = () => {
 
   // --- Window Management ---
   const WINDOW_WIDTH = 400;
-  const CONTROL_PANEL_HEIGHT = 500; // Increased height for new toggle
+  const CONTROL_PANEL_HEIGHT = 640; // Increased height for new 3D controls
   const CODE_PANEL_HEIGHT = 408;
   const CONSOLE_PANEL_HEIGHT = 148;
 
@@ -197,6 +214,10 @@ const MetaPrototype = () => {
         onButtonClick={handleStageButtonClick}
         showMeasurements={showMeasurements}
         showTokens={showTokens}
+        view3D={view3D}
+        viewRotateX={viewRotateX}
+        viewRotateZ={viewRotateZ}
+        layerSpacing={layerSpacing}
       />
 
       {/* --- WINDOWS --- */}
@@ -218,6 +239,12 @@ const MetaPrototype = () => {
                 onToggleMeasurements={handleToggleMeasurements}
                 showTokens={showTokens}
                 onToggleTokens={handleToggleTokens}
+                // 3D Props
+                view3D={view3D}
+                onToggleView3D={() => setView3D(!view3D)}
+                layerSpacing={layerSpacing}
+                viewRotateX={viewRotateX}
+                viewRotateZ={viewRotateZ}
             />
           </FloatingWindow>
         )}

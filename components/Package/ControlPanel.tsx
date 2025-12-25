@@ -21,6 +21,12 @@ interface ControlPanelProps {
   onToggleMeasurements: () => void;
   showTokens: boolean;
   onToggleTokens: () => void;
+  // 3D View Props
+  view3D: boolean;
+  onToggleView3D: () => void;
+  layerSpacing: MotionValue<number>;
+  viewRotateX: MotionValue<number>;
+  viewRotateZ: MotionValue<number>;
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = ({ 
@@ -31,7 +37,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   showMeasurements, 
   onToggleMeasurements, 
   showTokens,
-  onToggleTokens
+  onToggleTokens,
+  view3D,
+  onToggleView3D,
+  layerSpacing,
+  viewRotateX,
+  viewRotateZ
 }) => {
   const { theme, themeName } = useTheme();
 
@@ -105,7 +116,14 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           onChange={(e) => onPropChange('customColor', e.target.value)}
         />
       </div>
+      
       <div style={{ borderTop: `1px solid ${theme.Color.Base.Surface[3]}`, margin: `${theme.spacing['Space.L']} 0` }} />
+      
+      {/* --- INSPECTION TOOLS --- */}
+      <label style={{ ...theme.Type.Readable.Label.S, display: 'block', marginBottom: theme.spacing['Space.M'], color: theme.Color.Base.Content[2], textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        Inspector
+      </label>
+      
       <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing['Space.M'] }}>
         <Toggle
           label="Show Measurements"
@@ -117,6 +135,46 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           isOn={showTokens}
           onToggle={onToggleTokens}
         />
+        <Toggle
+          label="3D Layer View"
+          isOn={view3D}
+          onToggle={onToggleView3D}
+        />
+        
+        {view3D && (
+          <div style={{ 
+            marginTop: theme.spacing['Space.S'], 
+            padding: theme.spacing['Space.M'], 
+            backgroundColor: theme.Color.Base.Surface[2], 
+            borderRadius: theme.radius['Radius.M'],
+            border: `1px solid ${theme.Color.Base.Surface[3]}`,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: theme.spacing['Space.M']
+          }}>
+             <RangeSlider
+              label="Layer Spacing"
+              motionValue={layerSpacing}
+              onCommit={() => {}}
+              min={0}
+              max={150}
+            />
+            <RangeSlider
+              label="Rotate X"
+              motionValue={viewRotateX}
+              onCommit={() => {}}
+              min={0}
+              max={90}
+            />
+            <RangeSlider
+              label="Rotate Z"
+              motionValue={viewRotateZ}
+              onCommit={() => {}}
+              min={0}
+              max={360}
+            />
+          </div>
+        )}
       </div>
     </>
   );
