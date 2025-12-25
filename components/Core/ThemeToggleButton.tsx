@@ -41,8 +41,9 @@ const ThemeToggleButton = () => {
     },
     icon: {
       fontSize: '24px',
-      lineHeight: 0, // Prevents layout shifts from line-height
+      lineHeight: '0', // Prevents layout shifts from line-height
       pointerEvents: 'none',
+      display: 'block',
     }
   };
 
@@ -59,7 +60,7 @@ const ThemeToggleButton = () => {
       transition={{ duration: 0.2 }}
     >
       <AnimatePresence mode="wait" initial={false}>
-        <motion.i
+        <motion.span
           key={themeName}
           className={themeName === 'dark' ? 'ph-bold ph-moon' : 'ph-bold ph-sun'}
           style={styles.icon}

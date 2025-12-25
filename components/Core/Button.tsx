@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import { useTheme } from '../../Theme.tsx';
-import { motion, MotionValue } from 'framer-motion';
+import { motion, type MotionValue } from 'framer-motion';
 import StateLayer, { Ripple } from './StateLayer.tsx';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
@@ -36,37 +36,58 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   const { theme } = useTheme();
   
   // Interaction State
-  const [isActive, setIsActive] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
+  
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [ripples, setRipples] = useState<Ripple[]>([]);
 
-  // Handle Interaction Logic
-  const handleInteractionStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (disabled) return;
-    const buttonEl = (e.currentTarget as HTMLButtonElement);
-    if (buttonEl) {
-      const rect = buttonEl.getBoundingClientRect();
-      const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
-      const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
-      
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
-
-      setCoords({ x, y });
-      setDimensions({
-        width: rect.width,
-        height: rect.height,
-      });
-      setIsActive(true);
-      
-      // Add a transient ripple
-      setRipples(prev => [...prev, { id: Date.now() + Math.random(), x, y }]);
-    }
+  // Helper to calculate relative coordinates
+  const getCoords = (e: React.PointerEvent | React.MouseEvent) => {
+    const buttonEl = e.currentTarget as HTMLButtonElement;
+    const rect = buttonEl.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
   };
 
-  const handleInteractionEnd = () => {
-    setIsActive(false);
+  // Pointer Event Handlers
+  const handlePointerEnter = (e: React.PointerEvent) => {
+    if (disabled) return;
+    const { x, y, width, height } = getCoords(e);
+    setCoords({ x, y });
+    setDimensions({ width, height });
+    setIsHovered(true);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (disabled) return;
+    const { x, y } = getCoords(e);
+    setCoords({ x, y });
+  };
+
+  const handlePointerLeave = () => {
+    setIsHovered(false);
+    setIsPressed(false);
+  };
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (disabled) return;
+    const { x, y, width, height } = getCoords(e);
+    setCoords({ x, y });
+    setDimensions({ width, height });
+    setIsPressed(true);
+    
+    // Add transient ripple
+    setRipples(prev => [...prev, { id: Date.now() + Math.random(), x, y }]);
+  };
+
+  const handlePointerUp = () => {
+    setIsPressed(false);
   };
 
   const handleRippleComplete = (id: number) => {
@@ -144,6 +165,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
 
   // State Layer Color derivation
   const stateLayerColor = variant === 'primary' ? theme.Color.Accent.Content[1] : theme.Color.Base.Content[1];
+  
+  // Opacity: Press (35%) > Hover (25%)
+  const stateLayerOpacity = isPressed ? 0.35 : (isHovered ? 0.25 : 0);
 
   // New styles for content to prevent selection/dragging
   const contentStyles: React.CSSProperties = {
@@ -161,16 +185,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
         borderRadius: customRadius || theme.radius['Radius.Full'],
       }}
       onClick={onClick}
-      onMouseDown={handleInteractionStart}
-      onMouseUp={handleInteractionEnd}
-      onMouseLeave={handleInteractionEnd}
-      onTouchStart={handleInteractionStart}
-      onTouchEnd={handleInteractionEnd}
+      onPointerEnter={handlePointerEnter}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
       whileTap={{ scale: 0.96 }}
     >
       <StateLayer 
         color={customColor || stateLayerColor} 
-        isActive={isActive} 
+        isActive={isHovered || isPressed} 
+        opacity={stateLayerOpacity}
         x={coords.x} 
         y={coords.y} 
         width={dimensions.width} 

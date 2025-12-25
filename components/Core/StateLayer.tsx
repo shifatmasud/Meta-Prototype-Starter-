@@ -18,6 +18,7 @@ interface StateLayerProps {
   y: number;
   width: number;
   height: number;
+  opacity?: number;
   ripples?: Ripple[];
   onRippleComplete?: (id: number) => void;
 }
@@ -34,6 +35,7 @@ const StateLayer: React.FC<StateLayerProps> = ({
   y, 
   width, 
   height,
+  opacity = 0.15,
   ripples = [],
   onRippleComplete
 }) => {
@@ -62,19 +64,19 @@ const StateLayer: React.FC<StateLayerProps> = ({
     backgroundColor: color,
     borderRadius: '50%',
     transform: 'translate(-50%, -50%)',
-    opacity: 0.15,
     pointerEvents: 'none',
   };
 
   return (
     <div style={styles}>
-      {/* 1. Persistent Active State (Hold) */}
+      {/* 1. Persistent Active State (Hold & Hover) */}
       <motion.div
         style={activeLayerStyles}
         initial={false}
         animate={{
           width: isActive ? maxDiameter : 0,
           height: isActive ? maxDiameter : 0,
+          opacity: isActive ? opacity : 0,
         }}
         transition={{
           type: 'spring',
@@ -91,7 +93,7 @@ const StateLayer: React.FC<StateLayerProps> = ({
           initial={{
             width: 0,
             height: 0,
-            opacity: 0.12, // Reduced opacity for gentleness
+            opacity: 0.35, // Increased opacity for better visibility
           }}
           animate={{
             width: maxDiameter,

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React, { useRef, useEffect, useState } from 'react';
-import { MotionValue, animate } from 'framer-motion';
+import { type MotionValue, animate } from 'framer-motion';
 import { useTheme } from '../../Theme.tsx';
 
 interface RangeSliderProps {

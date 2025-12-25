@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React from 'react';
-import { MotionValue } from 'framer-motion';
+import { type MotionValue } from 'framer-motion';
 import { useTheme } from '../../Theme.tsx';
 import { MetaButtonProps } from '../../types/index.tsx';
 import Input from '../Core/Input.tsx';
@@ -33,7 +33,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   showTokens,
   onToggleTokens
 }) => {
-  const { theme } = useTheme();
+  const { theme, themeName } = useTheme();
 
   return (
     <>
@@ -96,12 +96,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing['Space.M'], marginTop: theme.spacing['Space.L'], width: '100%' }}>
         <ColorPicker
           label="Fill Color"
-          value={btnProps.customFill || (theme.themeName === 'dark' ? '#ffffff' : '#000000')}
+          value={btnProps.customFill || (themeName === 'dark' ? '#ffffff' : '#000000')}
           onChange={(e) => onPropChange('customFill', e.target.value)}
         />
         <ColorPicker
           label="Text Color"
-          value={btnProps.customColor || (theme.themeName === 'dark' ? '#000000' : '#ffffff')}
+          value={btnProps.customColor || (themeName === 'dark' ? '#000000' : '#ffffff')}
           onChange={(e) => onPropChange('customColor', e.target.value)}
         />
       </div>
