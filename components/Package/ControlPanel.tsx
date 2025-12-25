@@ -153,7 +153,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                     { value: 'default', label: 'Default' },
                     { value: 'hover', label: 'Hover' },
                     { value: 'focus', label: 'Focus' },
-                    { value: 'active', label: 'Active' },
+                    { value: 'active', label: 'Click' },
                     { value: 'disabled', label: 'Disabled' },
                 ]}
             />

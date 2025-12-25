@@ -252,6 +252,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
          return {
             y: -4, // Bolder lift
             scale: 1.05, // Bolder scale
+            // Ensure hover state has more elevation (Drop.3)
             boxShadow: isGhost ? 'none' : theme.effects['Effect.Shadow.Drop.3']
          };
     }
@@ -322,6 +323,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
                 y={coords.y} 
                 width={dimensions.width} 
                 height={dimensions.height}
+                forced={forcedHover}
             />
         </div>
       </motion.div>
@@ -335,6 +337,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
                 onRippleComplete={handleRippleComplete}
                 width={dimensions.width} 
                 height={dimensions.height}
+                forced={forcedActive}
             />
         </div>
       </motion.div>

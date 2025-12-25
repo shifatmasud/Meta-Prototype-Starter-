@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface StateLayerProps {
   color: string;
@@ -13,6 +13,7 @@ interface StateLayerProps {
   width: number;
   height: number;
   opacity?: number;
+  forced?: boolean;
 }
 
 interface LayerInstance {
@@ -39,7 +40,8 @@ const StateLayer: React.FC<StateLayerProps> = ({
   y, 
   width, 
   height,
-  opacity = 0.1, 
+  opacity = 0.1,
+  forced = false
 }) => {
   // Secret #1: Calculate the diameter needed to cover the button from any point
   const maxDiameter = Math.hypot(width, height) * 2;
@@ -48,6 +50,8 @@ const StateLayer: React.FC<StateLayerProps> = ({
   const prevActive = useRef(isActive);
 
   useEffect(() => {
+    if (forced) return; // Managed separately
+
     if (isActive && !prevActive.current) {
       // Enter: Spawn new layer
       setLayers(prev => [...prev, { id: Date.now() + Math.random(), isActive: true }]);
@@ -56,7 +60,7 @@ const StateLayer: React.FC<StateLayerProps> = ({
       setLayers(prev => prev.map(l => l.isActive ? { ...l, isActive: false, frozenX: x, frozenY: y } : l));
     }
     prevActive.current = isActive;
-  }, [isActive, x, y]);
+  }, [isActive, x, y, forced]);
 
   const removeLayer = (id: number) => {
     setLayers(prev => prev.filter(l => l.id !== id));
@@ -72,17 +76,36 @@ const StateLayer: React.FC<StateLayerProps> = ({
     opacity: opacity,
   };
 
+  const containerStyle: React.CSSProperties = { 
+    position: 'absolute', 
+    top: 0, 
+    left: 0, 
+    width: '100%', 
+    height: '100%', 
+    overflow: 'hidden', 
+    borderRadius: 'inherit', 
+    pointerEvents: 'none' 
+  };
+
+  if (forced) {
+    return (
+      <div style={containerStyle}>
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: opacity }}
+            style={{
+                width: '100%',
+                height: '100%',
+                backgroundColor: color,
+                pointerEvents: 'none',
+            }}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div style={{ 
-        position: 'absolute', 
-        top: 0, 
-        left: 0, 
-        width: '100%', 
-        height: '100%', 
-        overflow: 'hidden', 
-        borderRadius: 'inherit', 
-        pointerEvents: 'none' 
-    }}>
+    <div style={containerStyle}>
         {layers.map(layer => {
              // Use live props for active layers, frozen values for decaying layers
              const currentX = layer.isActive ? x : layer.frozenX;

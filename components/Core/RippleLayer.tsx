@@ -18,6 +18,7 @@ interface RippleLayerProps {
   width: number;
   height: number;
   opacity?: number;
+  forced?: boolean;
 }
 
 /**
@@ -31,7 +32,8 @@ const RippleLayer: React.FC<RippleLayerProps> = ({
   onRippleComplete,
   width,
   height,
-  opacity = 0.25 
+  opacity = 0.25,
+  forced = false
 }) => {
   // Calculate the diameter needed to cover the component from the center or furthest corner.
   const maxDiameter = Math.hypot(width, height) * 2.5;
@@ -47,6 +49,23 @@ const RippleLayer: React.FC<RippleLayerProps> = ({
     pointerEvents: 'none',
     zIndex: 0, // Sits on top of background but below content
   };
+
+  if (forced) {
+    return (
+        <div style={styles}>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: opacity }}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: color,
+                    pointerEvents: 'none'
+                }}
+            />
+        </div>
+    );
+  }
 
   return (
     <div style={styles}>
