@@ -23,6 +23,10 @@ interface ButtonProps {
   disabled?: boolean;
   layerSpacing?: MotionValue<number>;
   view3D?: boolean;
+  // Forced States
+  forcedHover?: boolean;
+  forcedFocus?: boolean;
+  forcedActive?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
@@ -37,11 +41,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   disabled = false,
   layerSpacing,
   view3D = false,
+  forcedHover = false,
+  forcedFocus = false,
+  forcedActive = false,
 }, ref) => {
   const { theme } = useTheme();
   
   // Interaction State
   const [isHovered, setIsHovered] = useState(false);
+  const effectiveHover = forcedHover || isHovered;
   
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -54,7 +62,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   const zStateLayer = useTransform(effectiveLayerSpacing, v => `translateZ(${v}px)`);
   const zRippleLayer = useTransform(effectiveLayerSpacing, v => `translateZ(${v * 2}px)`);
   const zContent = useTransform(effectiveLayerSpacing, v => `translateZ(${v * 3}px)`);
-
+  
   // Helper to calculate relative coordinates
   const getCoords = (e: React.PointerEvent | React.MouseEvent) => {
     const buttonEl = e.currentTarget as HTMLButtonElement;
@@ -70,8 +78,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   // Pointer Event Handlers
   const handlePointerEnter = (e: React.PointerEvent) => {
     if (disabled) return;
-    const { x, y, width, height } = getCoords(e);
-    setCoords({ x, y });
+    const { width, height } = getCoords(e);
     setDimensions({ width, height });
     setIsHovered(true);
   };
@@ -91,7 +98,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     const { x, y, width, height } = getCoords(e);
     setCoords({ x, y });
     setDimensions({ width, height });
-    // Note: We do NOT trigger ripples here anymore to avoid 'touch' start ripples.
   };
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -175,22 +181,23 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.spacing['Space.S'],
-    // borderRadius is handled dynamically below
     cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.5 : 1,
-    overflow: 'visible', // Changed from hidden to visible for 3D extrusion
+    opacity: disabled ? 0.4 : 1, // Premium disabled state
+    filter: disabled ? 'grayscale(100%)' : 'none',
+    overflow: 'visible',
     fontWeight: 600,
     fontFamily: theme.Type.Readable.Label.M.fontFamily,
-    transition: `transform ${theme.time['Time.1x']} ease, box-shadow ${theme.time['Time.1x']} ease`,
-    transformStyle: 'preserve-3d', // Enable 3D space for children
+    transformStyle: 'preserve-3d',
     ...variantStyles,
     ...sizeStyles,
+    // Note: box-shadow and transform handled by motion values below
+    boxShadow: undefined, 
   };
 
   // Feedback Color Derivation
-  const feedbackColor = variant === 'primary' ? theme.Color.Accent.Content[1] : theme.Color.Base.Content[1];
+  let feedbackColor = variant === 'primary' ? theme.Color.Accent.Content[1] : theme.Color.Base.Content[1];
   
-  // State Layer Opacity (Hover/Active presence only)
+  // State Layer Opacity
   const stateLayerOpacity = 0.1; 
 
   // Layer wrapper styles for 3D
@@ -215,8 +222,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     userSelect: 'none',
   };
 
-  // 3D Debug Colors (Matched to Stage.tsx HUD)
-  // Updated to use semantic feedback colors: Error, Signal, Focus, Success
+  // 3D Debug Colors
   const colors = {
       surface: theme.Color.Error.Content[1],
       state: theme.Color.Signal.Content[1],
@@ -225,6 +231,38 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   };
 
   const getDebugBorder = (color: string) => view3D ? `1px solid ${color}` : 'none';
+
+  // Calculate Animate Props for Premium Feel
+  // Separated Focus from this logic to avoid box-shadow interpolation bugs
+  const getAnimateState = () => {
+    if (disabled) return { y: 0, scale: 1, boxShadow: 'none' };
+    
+    // Active (Pressed)
+    if (forcedActive) {
+        return { 
+            y: 2, 
+            scale: 0.95, 
+            boxShadow: 'none' 
+        };
+    }
+    
+    // Hover (Mouse)
+    if (effectiveHover) {
+         const isGhost = variant === 'ghost';
+         return {
+            y: -4, // Bolder lift
+            scale: 1.05, // Bolder scale
+            boxShadow: isGhost ? 'none' : theme.effects['Effect.Shadow.Drop.3']
+         };
+    }
+    
+    // Idle
+    return { 
+        y: 0, 
+        scale: 1, 
+        boxShadow: variantStyles.boxShadow || 'none' 
+    };
+  };
 
   return (
     <motion.button
@@ -238,23 +276,47 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       onPointerDown={handlePointerDown}
-      whileTap={{ scale: 0.96 }}
+      animate={getAnimateState()}
+      // Default tap behavior if not forced
+      whileTap={forcedActive ? undefined : { scale: 0.95, y: 2, boxShadow: 'none' }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
     >
       {/* 
-        Decoupled Layers with 3D Support:
-        We wrap each layer in a motion.div to apply Z-translation.
-        Clip-path or overflow:hidden is applied on the wrapper to respect border-radius.
+        Decoupled Layers with 3D Support
       */}
       
-      {/* 0. SURFACE LAYER (Base Z=0 Debug Info) */}
+      {/* 0. SURFACE LAYER (Base Z=0) */}
       <motion.div style={{ ...layerWrapperStyle, zIndex: 0, border: getDebugBorder(colors.surface) }} />
+
+      {/* 0.5 FOCUS RING LAYER (Dedicated Element - NOT in 3D stack) */}
+      <motion.div 
+        style={{ 
+            ...layerWrapperStyle, 
+            zIndex: 1,
+        }}
+        animate={{ 
+            opacity: forcedFocus ? 1 : 0,
+            scale: forcedFocus ? 1 : 0.9,
+        }}
+        transition={{ duration: 0.2 }}
+      >
+         <div style={{
+             position: 'absolute',
+             top: '-4px', left: '-4px', right: '-4px', bottom: '-4px', // 4px offset ring
+             borderRadius: 'inherit',
+             border: `2px solid ${theme.Color.Focus.Content[1]}`,
+             pointerEvents: 'none',
+             boxShadow: forcedFocus ? `0 0 12px ${theme.Color.Focus.Surface[1]}` : 'none',
+             borderColor: theme.Color.Focus.Content[1],
+         }} />
+      </motion.div>
 
       {/* 1. STATE LAYER (Bottom) */}
       <motion.div style={{ ...layerWrapperStyle, transform: zStateLayer }}>
         <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: 'inherit', border: getDebugBorder(colors.state) }}>
             <StateLayer 
                 color={customColor || feedbackColor} 
-                isActive={isHovered} 
+                isActive={effectiveHover} 
                 opacity={stateLayerOpacity}
                 x={coords.x} 
                 y={coords.y} 
@@ -278,11 +340,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
       </motion.div>
       
       {/* 3. CONTENT LAYER (Top) */}
-      
-      {/* Visual Plane for Content (Border/Label) */}
       <motion.div style={{ ...layerWrapperStyle, transform: zContent, border: getDebugBorder(colors.content) }} />
 
-      {/* Actual Content (Relative Position for Sizing + Translated) */}
       <motion.div style={{ ...contentWrapperStyle, transform: zContent }}>
         {icon && <i className={`ph-bold ${icon}`} draggable={false} style={{ fontSize: '1.25em' }} />}
         <span draggable={false}>{label}</span>

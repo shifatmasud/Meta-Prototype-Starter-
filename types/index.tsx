@@ -33,4 +33,9 @@ export interface MetaButtonProps {
     customFill: string;
     customColor: string;
     customRadius: string;
+    // States
+    disabled: boolean;
+    forcedHover: boolean;
+    forcedFocus: boolean;
+    forcedActive: boolean;
 }

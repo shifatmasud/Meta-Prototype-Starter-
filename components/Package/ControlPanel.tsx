@@ -14,7 +14,7 @@ import Toggle from '../Core/Toggle.tsx';
 
 interface ControlPanelProps {
   btnProps: MetaButtonProps;
-  onPropChange: (key: string, value: any) => void;
+  onPropChange: (keyOrObj: string | Partial<MetaButtonProps>, value?: any) => void;
   radiusMotionValue: MotionValue<number>;
   onRadiusCommit: (value: number) => void;
   showMeasurements: boolean;
@@ -45,6 +45,30 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   viewRotateZ
 }) => {
   const { theme, themeName } = useTheme();
+
+  // Helper to determine current interaction state
+  const currentInteraction = btnProps.disabled ? 'disabled' 
+    : btnProps.forcedActive ? 'active'
+    : btnProps.forcedFocus ? 'focus'
+    : btnProps.forcedHover ? 'hover'
+    : 'default';
+
+  const handleInteractionChange = (e: any) => {
+    const val = e.target.value;
+    const updates: Partial<MetaButtonProps> = {
+      disabled: false,
+      forcedHover: false,
+      forcedFocus: false,
+      forcedActive: false,
+    };
+    if (val !== 'default') {
+        if (val === 'disabled') updates.disabled = true;
+        else if (val === 'hover') updates.forcedHover = true;
+        else if (val === 'focus') updates.forcedFocus = true;
+        else if (val === 'active') updates.forcedActive = true;
+    }
+    onPropChange(updates);
+  };
 
   return (
     <>
@@ -116,7 +140,25 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           onChange={(e) => onPropChange('customColor', e.target.value)}
         />
       </div>
+
+      <div style={{ borderTop: `1px solid ${theme.Color.Base.Surface[3]}`, margin: `${theme.spacing['Space.L']} 0` }} />
       
+      {/* --- FORCED STATES --- */}
+      <div style={{ width: '100%' }}>
+            <Select 
+                label="Interaction State"
+                value={currentInteraction}
+                onChange={handleInteractionChange}
+                options={[
+                    { value: 'default', label: 'Default' },
+                    { value: 'hover', label: 'Hover' },
+                    { value: 'focus', label: 'Focus' },
+                    { value: 'active', label: 'Active' },
+                    { value: 'disabled', label: 'Disabled' },
+                ]}
+            />
+      </div>
+
       <div style={{ borderTop: `1px solid ${theme.Color.Base.Surface[3]}`, margin: `${theme.spacing['Space.L']} 0` }} />
       
       {/* --- INSPECTION TOOLS --- */}

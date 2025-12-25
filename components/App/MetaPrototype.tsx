@@ -32,6 +32,10 @@ const MetaPrototype = () => {
     customFill: '',
     customColor: '',
     customRadius: '56px',
+    disabled: false,
+    forcedHover: false,
+    forcedFocus: false,
+    forcedActive: false,
   });
   
   // -- View / Inspection State --
@@ -150,7 +154,7 @@ const MetaPrototype = () => {
       timestamp: new Date().toLocaleTimeString(),
       message: msg,
     };
-    setLogs(prev => [entry, ...prev].slice(0, 50));
+    setLogs(prev => [entry, ...prev].slice(50));
   };
 
   const handleCopyCode = () => {
@@ -158,9 +162,14 @@ const MetaPrototype = () => {
     logEvent('JSON copied to clipboard');
   };
   
-  const handlePropChange = (key: string, value: any) => {
-    updateBtnProps({ ...btnProps, [key]: value });
-    logEvent(`Prop updated: ${key} = ${value}`);
+  const handlePropChange = (keyOrObj: string | Partial<MetaButtonProps>, value?: any) => {
+    if (typeof keyOrObj === 'string') {
+        updateBtnProps({ ...btnProps, [keyOrObj]: value });
+        logEvent(`Prop updated: ${keyOrObj} = ${value}`);
+    } else {
+        updateBtnProps({ ...btnProps, ...keyOrObj });
+        logEvent(`State updated: ${Object.keys(keyOrObj).join(', ')}`);
+    }
   };
 
   const handleRadiusCommit = (value: number) => {
