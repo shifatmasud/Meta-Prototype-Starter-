@@ -14,7 +14,7 @@ const LogEntry: React.FC<LogEntryProps> = ({ log }) => {
   const { theme } = useTheme();
 
   const getLogColor = (msg: string) => {
-    const lower = msg.toLowerCase();
+    const lower = msg ? msg.toLowerCase() : '';
     
     // Error
     if (lower.includes('error') || lower.includes('failed')) {
@@ -32,7 +32,7 @@ const LogEntry: React.FC<LogEntryProps> = ({ log }) => {
     }
     
     // Signal / Info / Updates
-    if (lower.includes('updated') || lower.includes('toggled') || lower.includes('copied') || lower.includes('changed')) {
+    if (lower.includes('updated') || lower.includes('toggled') || lower.includes('copied') || lower.includes('changed') || lower.includes('ready')) {
         return theme.Color.Signal.Content[1];
     }
 
@@ -40,10 +40,36 @@ const LogEntry: React.FC<LogEntryProps> = ({ log }) => {
     return theme.Color.Base.Content[1];
   };
 
+  // Extract 'tag' to avoid passing invalid CSS property to the div
+  const { tag, ...typeStyles } = theme.Type.Expressive.Data;
+
   return (
-    <div style={{ display: 'flex', gap: '8px', ...theme.Type.Expressive.Data, fontSize: '11px' }}>
-      <span style={{ color: theme.Color.Base.Content[3], flexShrink: 0 }}>[{log.timestamp}]</span>
-      <span style={{ color: getLogColor(log.message) }}>{log.message}</span>
+    <div style={{ 
+        display: 'flex', 
+        gap: '12px', 
+        alignItems: 'flex-start',
+        padding: '4px 0',
+        borderBottom: `1px solid ${theme.Color.Base.Surface[3]}33`, // Subtle separator
+        ...typeStyles, 
+        fontSize: '11px', 
+        lineHeight: '1.6',
+        width: '100%'
+    }}>
+      <span style={{ 
+          color: theme.Color.Base.Content[3], 
+          flexShrink: 0, 
+          opacity: 0.6,
+          fontVariantNumeric: 'tabular-nums' 
+      }}>
+          {log.timestamp}
+      </span>
+      <span style={{ 
+          color: getLogColor(log.message), 
+          wordBreak: 'break-word',
+          flex: 1
+      }}>
+          {log.message}
+      </span>
     </div>
   );
 };

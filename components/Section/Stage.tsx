@@ -225,6 +225,57 @@ const TokenOverlay: React.FC<{ anatomy: ElementAnatomy; btnProps: StageButtonPro
   );
 };
 
+interface HUDItemProps {
+    layer: { label: string; stroke: string; fill: string };
+    gap: MotionValue<number>;
+    isLast: boolean;
+}
+
+const HUDItem: React.FC<HUDItemProps> = ({ layer, gap, isLast }) => {
+    const { theme } = useTheme();
+    
+    return (
+        <motion.div style={{
+            marginBottom: isLast ? 0 : gap,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            gap: '12px'
+        }}>
+           {/* Connector Dot - Matches TokenBadge Circle */}
+           <div style={{ 
+               width: 6, 
+               height: 6, 
+               borderRadius: '50%', 
+               backgroundColor: layer.fill,
+               border: `1.5px solid ${layer.stroke}`,
+               boxShadow: theme.effects['Effect.Shadow.Drop.1'],
+               flexShrink: 0
+           }} />
+           
+           {/* Label Badge - Matches TokenBadge Rect/Text */}
+           <span style={{ 
+               fontFamily: theme.Type.Expressive.Data.fontFamily,
+               fontSize: '10px',
+               fontWeight: 'bold',
+               color: layer.stroke,
+               backgroundColor: layer.fill,
+               padding: '0 8px',
+               height: '20px',
+               borderRadius: '10px', // Pill shape
+               border: `1px solid ${layer.stroke}`,
+               whiteSpace: 'nowrap',
+               display: 'flex',
+               alignItems: 'center',
+               justifyContent: 'center',
+               lineHeight: 1
+           }}>
+               {layer.label}
+           </span>
+        </motion.div>
+    );
+}
+
 /**
  * 🥞 Layer Stack HUD (2D Overlay)
  * A visual legend that expands vertically to mirror the 3D layer separation.
@@ -283,51 +334,6 @@ const LayerStackHUD = ({ layerSpacing }: { layerSpacing: MotionValue<number> }) 
         </motion.div>
     );
 };
-
-const HUDItem = ({ layer, gap, isLast }: { layer: any, gap: MotionValue<number>, isLast: boolean }) => {
-    const { theme } = useTheme();
-    
-    return (
-        <motion.div style={{
-            marginBottom: isLast ? 0 : gap,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            gap: '12px'
-        }}>
-           {/* Connector Dot - Matches TokenBadge Circle */}
-           <div style={{ 
-               width: 6, 
-               height: 6, 
-               borderRadius: '50%', 
-               backgroundColor: layer.fill,
-               border: `1.5px solid ${layer.stroke}`,
-               boxShadow: theme.effects['Effect.Shadow.Drop.1'],
-               flexShrink: 0
-           }} />
-           
-           {/* Label Badge - Matches TokenBadge Rect/Text */}
-           <span style={{ 
-               fontFamily: theme.Type.Expressive.Data.fontFamily,
-               fontSize: '10px',
-               fontWeight: 'bold',
-               color: layer.stroke,
-               backgroundColor: layer.fill,
-               padding: '0 8px',
-               height: '20px',
-               borderRadius: '10px', // Pill shape
-               border: `1px solid ${layer.stroke}`,
-               whiteSpace: 'nowrap',
-               display: 'flex',
-               alignItems: 'center',
-               justifyContent: 'center',
-               lineHeight: 1
-           }}>
-               {layer.label}
-           </span>
-        </motion.div>
-    );
-}
 
 // --- MAIN COMPONENT ---
 

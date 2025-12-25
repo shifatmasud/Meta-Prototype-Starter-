@@ -80,7 +80,7 @@ const MetaPrototype = () => {
   const WINDOW_WIDTH = 400;
   const CONTROL_PANEL_HEIGHT = 640; // Increased height for new 3D controls
   const CODE_PANEL_HEIGHT = 408;
-  const CONSOLE_PANEL_HEIGHT = 148;
+  const CONSOLE_PANEL_HEIGHT = 200; // Increased slightly for better visibility
 
   const [windows, setWindows] = useState<Record<WindowId, WindowState>>({
     control: { id: 'control', title: 'Control', isOpen: false, zIndex: 1, x: -WINDOW_WIDTH / 2, y: -CONTROL_PANEL_HEIGHT / 2 },
@@ -99,6 +99,22 @@ const MetaPrototype = () => {
   }, [btnProps, isCodeFocused]);
 
   // -- Actions --
+
+  const logEvent = (msg: string) => {
+    const entry: LogEntry = {
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: new Date().toLocaleTimeString(),
+      message: msg,
+    };
+    // Append new logs to the end (Standard Console behavior)
+    // Keep only the last 50 logs
+    setLogs(prev => [...prev, entry].slice(-50));
+  };
+  
+  // Initial Log
+  useEffect(() => {
+      logEvent('System Ready. Meta Prototype initialized.');
+  }, []);
 
   const updateBtnProps = (newProps: MetaButtonProps, saveHistory: boolean = true) => {
     if (saveHistory) {
@@ -146,15 +162,6 @@ const MetaPrototype = () => {
       }
       return next;
     });
-  };
-
-  const logEvent = (msg: string) => {
-    const entry: LogEntry = {
-      id: Math.random().toString(36).substr(2, 9),
-      timestamp: new Date().toLocaleTimeString(),
-      message: msg,
-    };
-    setLogs(prev => [entry, ...prev].slice(50));
   };
 
   const handleCopyCode = () => {

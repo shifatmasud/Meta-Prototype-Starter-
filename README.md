@@ -1,4 +1,4 @@
-# React 18 Starter with Gemini API
+# React 18 Meta Prototype & Design System Starter Kit
 
 [**Remix on AI Studio**](https://ai.studio/apps/drive/1WYqqbd5DDER7bue4-jyHmwA6AC6Fn65w?fullscreenApplet=true)
 
