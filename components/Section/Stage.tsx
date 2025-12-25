@@ -236,11 +236,12 @@ const LayerStackHUD = ({ layerSpacing }: { layerSpacing: MotionValue<number> }) 
     const gap = useTransform(layerSpacing, [0, 150], [4, 32]);
     
     // Layers ordered from Top (Index 0) to Bottom (Index 3)
+    // Updated to use semantic feedback colors
     const layers = [
-        { label: 'Content Layer', color: theme.Color.Accent.Content[1] },
-        { label: 'Ripple Layer', color: theme.Color.Focus.Content[1] },
-        { label: 'State Layer', color: theme.Color.Signal.Content[1] },
-        { label: 'Surface Layer', color: theme.Color.Base.Content[2] }, 
+        { label: 'Content Layer', stroke: theme.Color.Success.Content[1], fill: theme.Color.Success.Surface[1] },
+        { label: 'Ripple Layer', stroke: theme.Color.Focus.Content[1], fill: theme.Color.Focus.Surface[1] },
+        { label: 'State Layer', stroke: theme.Color.Signal.Content[1], fill: theme.Color.Signal.Surface[1] },
+        { label: 'Surface Layer', stroke: theme.Color.Error.Content[1], fill: theme.Color.Error.Surface[1] }, 
     ];
 
     return (
@@ -294,26 +295,33 @@ const HUDItem = ({ layer, gap, isLast }: { layer: any, gap: MotionValue<number>,
             justifyContent: 'flex-start',
             gap: '12px'
         }}>
-           {/* Connector Dot */}
+           {/* Connector Dot - Matches TokenBadge Circle */}
            <div style={{ 
-               width: 8, 
-               height: 8, 
+               width: 6, 
+               height: 6, 
                borderRadius: '50%', 
-               backgroundColor: layer.color,
-               boxShadow: theme.effects['Effect.Shadow.Drop.1']
+               backgroundColor: layer.fill,
+               border: `1.5px solid ${layer.stroke}`,
+               boxShadow: theme.effects['Effect.Shadow.Drop.1'],
+               flexShrink: 0
            }} />
            
-           {/* Label Badge */}
+           {/* Label Badge - Matches TokenBadge Rect/Text */}
            <span style={{ 
-               ...theme.Type.Expressive.Data, 
-               fontSize: '11px', 
-               color: layer.color,
-               backgroundColor: `${theme.Color.Base.Surface[1]}cc`,
-               backdropFilter: 'blur(8px)',
-               padding: '4px 8px',
-               borderRadius: '6px',
-               border: `1px solid ${theme.Color.Base.Surface[3]}`,
-               whiteSpace: 'nowrap'
+               fontFamily: theme.Type.Expressive.Data.fontFamily,
+               fontSize: '10px',
+               fontWeight: 'bold',
+               color: layer.stroke,
+               backgroundColor: layer.fill,
+               padding: '0 8px',
+               height: '20px',
+               borderRadius: '10px', // Pill shape
+               border: `1px solid ${layer.stroke}`,
+               whiteSpace: 'nowrap',
+               display: 'flex',
+               alignItems: 'center',
+               justifyContent: 'center',
+               lineHeight: 1
            }}>
                {layer.label}
            </span>

@@ -216,11 +216,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   };
 
   // 3D Debug Colors (Matched to Stage.tsx HUD)
+  // Updated to use semantic feedback colors: Error, Signal, Focus, Success
   const colors = {
-      surface: theme.Color.Base.Content[2],
+      surface: theme.Color.Error.Content[1],
       state: theme.Color.Signal.Content[1],
       ripple: theme.Color.Focus.Content[1],
-      content: theme.Color.Accent.Content[1],
+      content: theme.Color.Success.Content[1],
   };
 
   const getDebugBorder = (color: string) => view3D ? `1px solid ${color}` : 'none';
