@@ -38,8 +38,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   
   // Interaction State
   const [isHovered, setIsHovered] = useState(false);
-  // Hover Session ID to ensure distinct enter/leave animations
-  const [hoverSession, setHoverSession] = useState(0);
   
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -64,8 +62,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     setCoords({ x, y });
     setDimensions({ width, height });
     setIsHovered(true);
-    // Increment session to treat this as a fresh entry for StateLayer
-    setHoverSession(prev => prev + 1);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -182,7 +178,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   const feedbackColor = variant === 'primary' ? theme.Color.Accent.Content[1] : theme.Color.Base.Content[1];
   
   // State Layer Opacity (Hover/Active presence only)
-  const stateLayerOpacity = 0.3; 
+  const stateLayerOpacity = 0.1; 
 
   // New styles for content to prevent selection/dragging
   const contentStyles: React.CSSProperties = {
@@ -208,13 +204,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     >
       {/* 
         Decoupled Layers:
-        1. StateLayer: Persistent active state. Uses hoverSession to ensure unique animations on re-entry.
+        1. StateLayer: Persistent active state. Physics-based spotlight.
         2. RippleLayer: Transient tap burst.
       */}
       <StateLayer 
         color={customColor || feedbackColor} 
         isActive={isHovered} 
-        sessionKey={hoverSession}
         opacity={stateLayerOpacity}
         x={coords.x} 
         y={coords.y} 
