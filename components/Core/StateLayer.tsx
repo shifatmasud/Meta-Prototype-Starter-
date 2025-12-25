@@ -5,12 +5,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-export interface Ripple {
-  id: number;
-  x: number;
-  y: number;
-}
-
 interface StateLayerProps {
   color: string;
   isActive: boolean;
@@ -19,14 +13,12 @@ interface StateLayerProps {
   width: number;
   height: number;
   opacity?: number;
-  ripples?: Ripple[];
-  onRippleComplete?: (id: number) => void;
 }
 
 /**
- * 🔮 THE STATE LAYER
+ * 🔮 STATE LAYER
  * An interactive soul that provides organic feedback relative to touch/cursor position.
- * Now features both a persistent 'active' state and transient 'ripple' bursts.
+ * Handles the persistent 'active' state (Hover/Press) that follows the user's pointer.
  */
 const StateLayer: React.FC<StateLayerProps> = ({ 
   color, 
@@ -36,10 +28,8 @@ const StateLayer: React.FC<StateLayerProps> = ({
   width, 
   height,
   opacity = 0.15,
-  ripples = [],
-  onRippleComplete
 }) => {
-  // Calculate the diameter needed to cover the button from the furthest corner.
+  // Calculate diameter to ensure full coverage
   const maxDiameter = Math.hypot(width, height) * 2.5;
 
   const styles: React.CSSProperties = {
@@ -54,7 +44,6 @@ const StateLayer: React.FC<StateLayerProps> = ({
     zIndex: 0,
   };
 
-  // The existing persistent press layer (User likes this)
   const activeLayerStyles: React.CSSProperties = {
     position: 'absolute',
     top: y,
@@ -69,7 +58,7 @@ const StateLayer: React.FC<StateLayerProps> = ({
 
   return (
     <div style={styles}>
-      {/* 1. Persistent Active State (Hold & Hover) */}
+      {/* Persistent Active State (Hold & Hover) */}
       <motion.div
         style={activeLayerStyles}
         initial={false}
@@ -85,38 +74,6 @@ const StateLayer: React.FC<StateLayerProps> = ({
           mass: 0.5,
         }}
       />
-
-      {/* 2. Transient Ripples (Click/Tap) */}
-      {ripples.map((ripple) => (
-        <motion.div
-          key={ripple.id}
-          initial={{
-            width: 0,
-            height: 0,
-            opacity: 0.35, // Increased opacity for better visibility
-          }}
-          animate={{
-            width: maxDiameter,
-            height: maxDiameter,
-            opacity: 0,
-            filter: 'blur(16px)', // Softer blur
-          }}
-          style={{
-            position: 'absolute',
-            top: ripple.y,
-            left: ripple.x,
-            backgroundColor: color,
-            borderRadius: '50%',
-            transform: 'translate(-50%, -50%)',
-            pointerEvents: 'none',
-          }}
-          transition={{
-            duration: 3.0, // Ultra-gentle duration
-            ease: [0.16, 1, 0.3, 1], // Very soft ease-out
-          }}
-          onAnimationComplete={() => onRippleComplete && onRippleComplete(ripple.id)}
-        />
-      ))}
     </div>
   );
 };

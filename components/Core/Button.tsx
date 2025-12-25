@@ -5,7 +5,8 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../Theme.tsx';
 import { motion, type MotionValue } from 'framer-motion';
-import StateLayer, { Ripple } from './StateLayer.tsx';
+import StateLayer from './StateLayer.tsx';
+import RippleLayer, { Ripple } from './RippleLayer.tsx';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
 export type ButtonSize = 'S' | 'M' | 'L';
@@ -200,8 +201,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
         y={coords.y} 
         width={dimensions.width} 
         height={dimensions.height}
+      />
+      
+      <RippleLayer
+        color={customColor || stateLayerColor}
         ripples={ripples}
         onRippleComplete={handleRippleComplete}
+        width={dimensions.width} 
+        height={dimensions.height}
       />
       
       {icon && <i className={`ph-bold ${icon}`} draggable={false} style={{ ...contentStyles, fontSize: '1.25em' }} />}
